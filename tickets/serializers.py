@@ -35,6 +35,19 @@ class TicketSerializer(serializers.ModelSerializer):
     reporter = UserSummarySerializer(read_only=True)
     assignee = UserSummarySerializer(read_only=True)
 
+    assignee_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(
+            role__in=[
+                User.Role.IT_ENGINEER,
+                User.Role.IT_MANAGER,
+                User.Role.ADMIN,
+            ]
+        ),
+        source="assignee",
+        write_only=True,
+        required=False,
+    )
+
     class Meta:
         model = Ticket
         fields = [
@@ -46,6 +59,7 @@ class TicketSerializer(serializers.ModelSerializer):
             "category_id",
             "reporter",
             "assignee",
+            "assignee_id",
             "priority",
             "status",
             "created_at",
@@ -93,10 +107,53 @@ class TicketSerializer(serializers.ModelSerializer):
                 }
             )
 
+        # Employee 不能指定 assignee
+        if (
+            user.role == "employee"
+            and self.instance is not None
+            and "assignee" in attrs
+        ):
+            raise serializers.ValidationError(
+                {
+                    "assignee_id": (
+                        "Employee users cannot assign tickets."
+                    )
+                }
+            )
+
+        # 指派工單時必須有 assignee
+        if self.instance is not None:
+            new_status = attrs.get("status", self.instance.status)
+            new_assignee = attrs.get("assignee", self.instance.assignee)
+
+            if new_status == Ticket.Status.ASSIGNED and new_assignee is None:
+                raise serializers.ValidationError(
+                    {"assignee_id": ("An assignee is required when assigning a ticket.")}
+                )
+
+            if new_status == Ticket.Status.IN_PROGRESS and new_assignee is None:
+                raise serializers.ValidationError(
+                    {"assignee_id": ("An assignee is required before starting work.")}
+                )
+
         # Ticket status transition 驗證
         if self.instance is not None and "status" in attrs:
             current_status = self.instance.status
             new_status = attrs["status"]
+
+                # 只有被指派的工程師才能開始處理工單
+            if (
+                new_status == Ticket.Status.IN_PROGRESS
+                and self.instance.assignee != user
+                and user.role not in ["it_manager", "admin"]
+            ):
+                raise serializers.ValidationError(
+                    {
+                        "status": (
+                            "Only the assigned engineer can start working on this ticket."
+                        )
+                    }
+                )
 
             allowed_transitions = {
                 Ticket.Status.OPEN: [
