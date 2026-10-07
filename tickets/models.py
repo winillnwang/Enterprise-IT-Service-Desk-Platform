@@ -111,13 +111,11 @@ class TicketHistory(models.Model):
         max_length=50,
     )
 
-    old_value = models.CharField(
-        max_length=255,
+    old_value = models.TextField(
         blank=True,
     )
 
-    new_value = models.CharField(
-        max_length=255,
+    new_value = models.TextField(
         blank=True,
     )
 
