@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>資產詳細</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        .page-header {
+            background-color: #1f3b5b;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #current-user {
+            font-size: 14px;
+        }
+
+        #logout-button {
+            padding: 7px 14px;
+            border: 1px solid white;
+            border-radius: 6px;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        #logout-button:hover {
+            background-color: white;
+            color: #1f3b5b;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background-color: white;
+            padding: 28px;
+            border-radius: 10px;
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .card h2,
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            row-gap: 14px;
+            column-gap: 20px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            max-width: 700px;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .update-button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background-color: #1f3b5b;
+            color: white;
+            cursor: pointer;
+        }
+
+        .update-button:hover {
+            background-color: #162c44;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 6px;
+            background-color: #e5e7eb;
+            color: #222;
+            text-decoration: none;
+        }
+
+        #update-message {
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status-available {
+            background-color: #e8f5e9;
+        }
+
+        .status-in_use {
+            background-color: #e3f2fd;
+        }
+
+        .status-maintenance {
+            background-color: #fff3cd;
+        }
+
+        .status-retired {
+            background-color: #eeeeee;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+
+        <h1>
+            企業 IT 維運暨工單管理平台
+        </h1>
+
+        <div class="user-area">
+
+            <span id="current-user">
+                使用者載入中...
+            </span>
+
+            <button id="logout-button">
+                登出
+            </button>
+
+        </div>
+    </div>
+
+
+    <div class="container">
+
+        <div class="card">
+
+            <h2>
+                資產詳細
+            </h2>
+
+            <div id="asset-detail">
+                載入中...
+            </div>
+
+        </div>
+
+
+        <div
+            id="asset-actions"
+            class="card"
+            style="display: none;"
+        >
+
+            <h3>
+                資產維護
+            </h3>
+
+
+            <div class="form-group">
+
+                <label for="status">
+                    狀態
+                </label>
+
+                <select id="status">
+
+                    <option value="available">
+                        可用
+                    </option>
+
+                    <option value="in_use">
+                        使用中
+                    </option>
+
+                    <option value="maintenance">
+                        維修中
+                    </option>
+
+                    <option value="retired">
+                        已報廢
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="assigned-to">
+                    指派使用者
+                </label>
+
+                <select id="assigned-to">
+
+                    <option value="">
+                        尚未指派
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="department">
+                    部門
+                </label>
+
+                <select id="department">
+
+                    <option value="">
+                        尚未指定
+                    </option>
+
+                </select>
+
+            </div>
+            <div class="form-group">
+
+                <label for="notes">
+                    備註
+                </label>
+
+                <textarea
+                    id="notes"
+                ></textarea>
+
+            </div>
+
+
+            <button
+                id="update-button"
+                class="update-button"
+            >
+                更新資產
+            </button>
+
+            <p id="update-message"></p>
+
+        </div>
+
+
+        <a
+            href="/assets/"
+            class="back-link"
+        >
+            返回資產列表
+        </a>
+
+    </div>
+
+
+    <script>
+
+        const assetId =
+            "{{ asset_id }}";
+
+        let currentUser = null;
+        let loadedAsset = null;
+
+
+        function getStatusLabel(status) {
+            const labels = {
+                available: "可用",
+                in_use: "使用中",
+                maintenance: "維修中",
+                retired: "已報廢"
+            };
+
+            return labels[status] || status;
+        }
+
+
+        function getAssetTypeLabel(type) {
+            const labels = {
+                laptop: "筆記型電腦",
+                desktop: "桌上型電腦",
+                monitor: "螢幕",
+                phone: "手機",
+                printer: "印表機",
+                network: "網路設備",
+                other: "其他"
+            };
+
+            return labels[type] || type;
+        }
+
+
+        function getRoleLabel(role) {
+            const labels = {
+                employee: "一般員工",
+                it_engineer: "IT 工程師",
+                it_manager: "IT 管理者",
+                admin: "系統管理員"
+            };
+
+            return labels[role] || role;
+        }
+
+
+        async function refreshAccessToken() {
+            const refreshToken =
+                localStorage.getItem(
+                    "refresh_token"
+                );
+
+            if (!refreshToken) {
+                return null;
+            }
+
+            const response = await fetch(
+                "/api/auth/refresh/",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        refresh: refreshToken
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                localStorage.removeItem(
+                    "access_token"
+                );
+
+                localStorage.removeItem(
+                    "refresh_token"
+                );
+
+                return null;
+            }
+
+            const data =
+                await response.json();
+
+            localStorage.setItem(
+                "access_token",
+                data.access
+            );
+
+            return data.access;
+        }
+
+
+        async function apiFetch(
+            url,
+            options = {}
+        ) {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+            const requestOptions = {
+                ...options,
+
+                headers: {
+                    ...(options.headers || {}),
+
+                    "Authorization":
+                        `Bearer ${accessToken}`
+                }
+            };
+
+
+            let response = await fetch(
+                url,
+                requestOptions
+            );
+
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return null;
+                }
+
+
+                requestOptions.headers[
+                    "Authorization"
+                ] =
+                    `Bearer ${accessToken}`;
+
+
+                response = await fetch(
+                    url,
+                    requestOptions
+                );
+            }
+
+            return response;
+        }
+
+
+        async function loadCurrentUser() {
+            const response =
+                await apiFetch(
+                    "/api/auth/me/"
+                );
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                window.location.href =
+                    "/login/";
+
+                return null;
+            }
+
+
+            const user =
+                await response.json();
+
+
+            document.getElementById(
+                "current-user"
+            ).textContent =
+                `${user.username}｜${getRoleLabel(user.role)}`;
+
+
+            return user;
+        }
+
+
+        async function loadAssignees() {
+            const response =
+                await apiFetch(
+                    "/api/users/asset-assignees/"
+                );
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                return;
+            }
+
+
+            const users =
+                await response.json();
+
+
+            const select =
+                document.getElementById(
+                    "assigned-to"
+                );
+
+
+            select.innerHTML =
+                '<option value="">尚未指派</option>';
+
+
+            for (const user of users) {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    user.id;
+
+                option.textContent =
+                    `${user.username} (${getRoleLabel(user.role)})`;
+
+                select.appendChild(
+                    option
+                );
+            }
+        }
+
+        async function loadDepartments() {
+            const response =
+                await apiFetch(
+                    "/api/departments/"
+                );
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                return;
+            }
+
+            const departments =
+                await response.json();
+
+            const select =
+                document.getElementById(
+                    "department"
+                );
+
+            select.innerHTML =
+                '<option value="">尚未指定</option>';
+
+            for (const department of departments) {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    department.id;
+
+                option.textContent =
+                    `${department.code} - ${department.name}`;
+
+                select.appendChild(
+                    option
+                );
+            }
+        }
+        async function loadAsset() {
+            const response =
+                await apiFetch(
+                    `/api/assets/${assetId}/`
+                );
+
+
+            const container =
+                document.getElementById(
+                    "asset-detail"
+                );
+
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                container.textContent =
+                    "無法載入資產資料";
+
+                return;
+            }
+
+
+            const asset =
+                await response.json();
+
+
+            loadedAsset =
+                asset;
+
+
+            document.getElementById(
+                "status"
+            ).value =
+                asset.status;
+
+
+            document.getElementById(
+                "assigned-to"
+            ).value =
+                asset.assigned_to
+                    ? asset.assigned_to.id
+                    : "";
+
+            document.getElementById(
+                "department"
+            ).value =
+                asset.department
+                    ? asset.department.id
+                    : "";
+
+            document.getElementById(
+                "notes"
+            ).value =
+                asset.notes || "";
+
+
+            const assignedToName =
+                asset.assigned_to
+                    ? asset.assigned_to.username
+                    : "尚未指派";
+
+
+            container.innerHTML = `
+                <div class="info-grid">
+
+                    <div class="info-label">
+                        資產編號
+                    </div>
+
+                    <div>
+                        ${asset.asset_no}
+                    </div>
+
+
+                    <div class="info-label">
+                        資產名稱
+                    </div>
+
+                    <div>
+                        ${asset.name}
+                    </div>
+
+
+                    <div class="info-label">
+                        類型
+                    </div>
+
+                    <div>
+                        ${getAssetTypeLabel(
+                            asset.asset_type
+                        )}
+                    </div>
+
+
+                    <div class="info-label">
+                        序號
+                    </div>
+
+                    <div>
+                        ${asset.serial_number || "-"}
+                    </div>
+
+
+                    <div class="info-label">
+                        狀態
+                    </div>
+
+                    <div>
+                        <span
+                            class="status-badge status-${asset.status}"
+                        >
+                            ${getStatusLabel(
+                                asset.status
+                            )}
+                        </span>
+                    </div>
+
+
+                    <div class="info-label">
+                        使用者
+                    </div>
+
+                    <div>
+                        ${assignedToName}
+                    </div>
+
+
+                    <div class="info-label">
+                        部門
+                    </div>
+
+                    <div>
+                        ${
+                            asset.department
+                                ? `${asset.department.code} - ${asset.department.name}`
+                                : "-"
+                        }
+                    </div>
+
+
+                    <div class="info-label">
+                        購買日期
+                    </div>
+
+                    <div>
+                        ${asset.purchase_date || "-"}
+                    </div>
+
+
+                    <div class="info-label">
+                        保固期限
+                    </div>
+
+                    <div>
+                        ${asset.warranty_end || "-"}
+                    </div>
+
+
+                    <div class="info-label">
+                        備註
+                    </div>
+
+                    <div>
+                        ${asset.notes || "-"}
+                    </div>
+
+                </div>
+            `;
+        }
+
+
+        async function updateAsset() {
+            const message =
+                document.getElementById(
+                    "update-message"
+                );
+
+
+            if (!loadedAsset) {
+                message.textContent =
+                    "資產資料尚未載入";
+
+                return;
+            }
+
+
+            const status =
+                document.getElementById(
+                    "status"
+                ).value;
+
+
+            const assignedToValue =
+                document.getElementById(
+                    "assigned-to"
+                ).value;
+
+            const departmentValue =
+                document.getElementById(
+                    "department"
+                ).value;
+
+            const notes =
+                document.getElementById(
+                    "notes"
+                ).value;
+
+
+            const bodyData = {};
+
+
+            /*
+                狀態只有真的變更時才送。
+            */
+            if (
+                status !== loadedAsset.status
+            ) {
+                bodyData.status =
+                    status;
+            }
+
+
+            /*
+                目前 assigned user id。
+            */
+            const currentAssignedToId =
+                loadedAsset.assigned_to
+                    ? Number(
+                        loadedAsset.assigned_to.id
+                    )
+                    : null;
+
+
+            /*
+                使用者下拉選單的新值。
+            */
+            const newAssignedToId =
+                assignedToValue
+                    ? Number(
+                        assignedToValue
+                    )
+                    : null;
+
+
+            /*
+                Assigned user 真的有改，
+                才送 assigned_to_id。
+
+                後端會負責：
+
+                指派使用者
+                → 自動 in_use
+
+                解除指派
+                → 自動 available
+            */
+            if (
+                newAssignedToId
+                !== currentAssignedToId
+            ) {
+                bodyData.assigned_to_id =
+                    newAssignedToId;
+            }
+
+            const currentDepartmentId =
+                loadedAsset.department
+                    ? Number(
+                        loadedAsset.department.id
+                    )
+                    : null;
+
+            const newDepartmentId =
+                departmentValue
+                    ? Number(
+                        departmentValue
+                    )
+                    : null;
+
+            if (
+                newDepartmentId
+                !== currentDepartmentId
+            ) {
+                bodyData.department_id =
+                    newDepartmentId;
+            }
+
+            /*
+                備註只有真的修改時才送。
+            */
+            if (
+                notes
+                !== (loadedAsset.notes || "")
+            ) {
+                bodyData.notes =
+                    notes;
+            }
+
+
+            /*
+                完全沒有修改時，
+                不送 PATCH。
+            */
+            if (
+                Object.keys(
+                    bodyData
+                ).length === 0
+            ) {
+                message.textContent =
+                    "沒有需要更新的內容";
+
+                return;
+            }
+
+
+            const response =
+                await apiFetch(
+                    `/api/assets/${assetId}/`,
+                    {
+                        method: "PATCH",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                bodyData
+                            )
+                    }
+                );
+
+
+            if (!response) {
+                return;
+            }
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+                message.textContent =
+                    "更新成功";
+
+                await loadAsset();
+
+                return;
+            }
+
+
+            if (
+                data.assigned_to_id
+            ) {
+                message.textContent =
+                    data.assigned_to_id[0];
+
+                return;
+            }
+
+
+            if (
+                data.status
+            ) {
+                message.textContent =
+                    data.status[0];
+
+                return;
+            }
+
+
+            message.textContent =
+                JSON.stringify(data);
+        }
+
+
+        async function initializePage() {
+            currentUser =
+                await loadCurrentUser();
+
+
+            if (!currentUser) {
+                return;
+            }
+
+
+            /*
+                IT 角色才需要載入
+                可指派使用者清單。
+            */
+            if (
+                [
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(
+                    currentUser.role
+                )
+            ) {
+                await loadAssignees();
+                await loadDepartments();
+                await loadAsset();
+            }
+
+
+            await loadAsset();
+
+
+            /*
+                IT 才能看到資產維護區。
+                Employee 查看自己的資產時，
+                只能唯讀。
+            */
+            if (
+                [
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(
+                    currentUser.role
+                )
+            ) {
+                document.getElementById(
+                    "asset-actions"
+                ).style.display =
+                    "block";
+            }
+        }
+
+
+        document
+            .getElementById(
+                "update-button"
+            )
+            .addEventListener(
+                "click",
+                updateAsset
+            );
+
+
+        document
+            .getElementById(
+                "logout-button"
+            )
+            .addEventListener(
+                "click",
+                function () {
+                    localStorage.removeItem(
+                        "access_token"
+                    );
+
+                    localStorage.removeItem(
+                        "refresh_token"
+                    );
+
+                    window.location.href =
+                        "/login/";
+                }
+            );
+
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializePage
+        );
+
+    </script>
+
+</body>
+
+</html>

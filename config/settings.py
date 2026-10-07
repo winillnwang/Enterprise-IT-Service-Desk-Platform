@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "accounts",
     "tickets",
     "rest_framework",
+    "assets",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -62,14 +63,14 @@ ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
@@ -111,13 +112,44 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": ("{levelname} " "{asctime} " "{name} " "{message}"),
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "app.log",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "tickets": {
+            "handlers": [
+                "console",
+                "file",
+            ],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "zh-hant"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "Asia/Taipei"
 
 USE_I18N = True
 
@@ -143,4 +175,5 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
 }

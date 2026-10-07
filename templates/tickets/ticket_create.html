@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>新增工單</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        .page-header {
+            background-color: #1f3b5b;
+            color: white;
+            padding: 18px 30px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #current-user {
+            font-size: 14px;
+        }
+
+        #logout-button {
+            padding: 7px 14px;
+            border: 1px solid white;
+            border-radius: 6px;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        #logout-button:hover {
+            background-color: white;
+            color: #1f3b5b;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+        }
+
+        .form-card {
+            background-color: white;
+            padding: 28px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .submit-button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background-color: #1f3b5b;
+            color: white;
+            cursor: pointer;
+        }
+
+        .back-link {
+            padding: 10px 18px;
+            border-radius: 6px;
+            background-color: #e5e7eb;
+            color: #222;
+            text-decoration: none;
+        }
+
+        #message {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+        <div>
+            <h1>企業 IT 維運暨工單管理平台</h1>
+        </div>
+
+        <div class="user-area">
+            <span id="current-user">
+                使用者載入中...
+            </span>
+
+            <button id="logout-button">
+                登出
+            </button>
+        </div>
+    </div>
+
+
+    <div class="container">
+
+        <div class="form-card">
+
+            <h2>新增工單</h2>
+
+            <form id="ticket-form">
+
+                <div class="form-group">
+                    <label for="title">
+                        標題
+                    </label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        required
+                    >
+                </div>
+
+
+                <div class="form-group">
+                    <label for="description">
+                        問題描述
+                    </label>
+
+                    <textarea
+                        id="description"
+                        required
+                    ></textarea>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="category_id">
+                        分類
+                    </label>
+                    <select
+                        id="category_id"
+                        required
+                    >
+                        <option value="">
+                            分類載入中...
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="priority">
+                        優先級
+                    </label>
+
+                    <select
+                        id="priority"
+                        required
+                    >
+                        <option value="low">
+                            低
+                        </option>
+
+                        <option value="medium" selected>
+                            中
+                        </option>
+
+                        <option value="high">
+                            高
+                        </option>
+
+                        <option value="critical">
+                            緊急
+                        </option>
+                    </select>
+                </div>
+
+
+                <div class="button-row">
+
+                    <button
+                        type="submit"
+                        class="submit-button"
+                    >
+                        建立工單
+                    </button>
+
+                    <a
+                        href="/tickets/"
+                        class="back-link"
+                    >
+                        返回工單列表
+                    </a>
+
+                </div>
+
+                <p id="message"></p>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const form =
+            document.getElementById("ticket-form");
+
+        const message =
+            document.getElementById("message");
+
+
+        function getRoleLabel(role) {
+            const labels = {
+                employee: "一般員工",
+                it_engineer: "IT 工程師",
+                it_manager: "IT 管理者",
+                admin: "系統管理員"
+            };
+
+            return labels[role] || role;
+        }
+
+
+        async function refreshAccessToken() {
+            const refreshToken =
+                localStorage.getItem("refresh_token");
+
+            if (!refreshToken) {
+                return null;
+            }
+
+            const response = await fetch(
+                "/api/auth/refresh/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        refresh: refreshToken
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                localStorage.removeItem(
+                    "access_token"
+                );
+
+                localStorage.removeItem(
+                    "refresh_token"
+                );
+
+                return null;
+            }
+
+            const data =
+                await response.json();
+
+            localStorage.setItem(
+                "access_token",
+                data.access
+            );
+
+            return data.access;
+        }
+
+
+        async function loadCurrentUser() {
+            let accessToken =
+                localStorage.getItem("access_token");
+
+            let response = await fetch(
+                "/api/auth/me/",
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+                    return;
+                }
+
+                response = await fetch(
+                    "/api/auth/me/",
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            }
+
+            if (!response.ok) {
+                window.location.href =
+                    "/login/";
+                return;
+            }
+
+            const user =
+                await response.json();
+
+            document.getElementById(
+                "current-user"
+            ).textContent =
+                `${user.username}｜${getRoleLabel(user.role)}`;
+        }
+
+        async function loadCategories() {
+            let accessToken =
+                localStorage.getItem("access_token");
+
+            let response = await fetch(
+                "/api/ticket-categories/",
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return;
+                }
+
+                response = await fetch(
+                    "/api/ticket-categories/",
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            }
+
+            if (!response.ok) {
+                return;
+            }
+
+            const categories =
+                await response.json();
+
+            const categorySelect =
+                document.getElementById(
+                    "category_id"
+                );
+
+            categorySelect.innerHTML =
+                '<option value="">請選擇分類</option>';
+
+            for (const category of categories) {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    category.id;
+
+                option.textContent =
+                    category.name;
+
+                categorySelect.appendChild(
+                    option
+                );
+            }
+        }
+        async function createTicket(
+            ticketData
+        ) {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+            let response = await fetch(
+                "/api/tickets/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`,
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify(
+                            ticketData
+                        )
+                }
+            );
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+                    return null;
+                }
+
+                response = await fetch(
+                    "/api/tickets/",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`,
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body:
+                            JSON.stringify(
+                                ticketData
+                            )
+                    }
+                );
+            }
+
+            return response;
+        }
+
+
+        form.addEventListener(
+            "submit",
+            async function (event) {
+                event.preventDefault();
+
+                const title =
+                    document.getElementById(
+                        "title"
+                    ).value;
+
+                const description =
+                    document.getElementById(
+                        "description"
+                    ).value;
+
+                const categoryId =
+                    document.getElementById(
+                        "category_id"
+                    ).value;
+
+                const priority =
+                    document.getElementById(
+                        "priority"
+                    ).value;
+
+                const ticketData = {
+                    title: title,
+                    description: description,
+                    category_id:
+                        Number(categoryId),
+                    priority: priority
+                };
+
+                const response =
+                    await createTicket(
+                        ticketData
+                    );
+
+                if (!response) {
+                    return;
+                }
+
+                const data =
+                    await response.json();
+
+                if (response.ok) {
+                    window.location.href =
+                        "/tickets/";
+                } else {
+                    message.textContent =
+                        JSON.stringify(data);
+                }
+            }
+        );
+
+
+        document
+            .getElementById(
+                "logout-button"
+            )
+            .addEventListener(
+                "click",
+                function () {
+                    localStorage.removeItem(
+                        "access_token"
+                    );
+
+                    localStorage.removeItem(
+                        "refresh_token"
+                    );
+
+                    window.location.href =
+                        "/login/";
+                }
+            );
+
+
+        loadCurrentUser();
+        loadCategories();
+
+    </script>
+
+</body>
+</html>

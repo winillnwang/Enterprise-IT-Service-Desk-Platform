@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>工單詳細</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        .page-header {
+            background-color: #1f3b5b;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #current-user {
+            font-size: 14px;
+        }
+
+        #logout-button {
+            padding: 7px 14px;
+            border: 1px solid white;
+            border-radius: 6px;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        #logout-button:hover {
+            background-color: white;
+            color: #1f3b5b;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background-color: white;
+            padding: 28px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .card h2,
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            row-gap: 14px;
+            column-gap: 20px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            max-width: 700px;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .update-button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background-color: #1f3b5b;
+            color: white;
+            cursor: pointer;
+        }
+
+        .update-button:hover {
+            background-color: #162c44;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 18px;
+            border-radius: 6px;
+            background-color: #e5e7eb;
+            color: #222;
+            text-decoration: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: #eeeeee;
+        }
+
+        .priority-low {
+            background-color: #e8f5e9;
+        }
+
+        .priority-medium {
+            background-color: #fff3cd;
+        }
+
+        .priority-high {
+            background-color: #ffe0b2;
+        }
+
+        .priority-critical {
+            background-color: #ffcdd2;
+        }
+
+        .status-open {
+            background-color: #e3f2fd;
+        }
+
+        .status-assigned {
+            background-color: #ede7f6;
+        }
+
+        .status-in_progress {
+            background-color: #fff3e0;
+        }
+
+        .status-resolved {
+            background-color: #e8f5e9;
+        }
+
+        .status-closed {
+            background-color: #eeeeee;
+        }
+
+        #update-message {
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .history-row {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+        <div>
+            <h1>企業 IT 維運暨工單管理平台</h1>
+        </div>
+
+        <div class="user-area">
+            <span id="current-user">
+                使用者載入中...
+            </span>
+
+            <button id="logout-button">
+                登出
+            </button>
+        </div>
+    </div>
+
+
+    <div class="container">
+
+        <div class="card">
+            <h2>工單詳細</h2>
+
+            <div id="ticket-detail">
+                載入中...
+            </div>
+        </div>
+
+
+        <div
+            id="ticket-actions"
+            class="card"
+            style="display: none;"
+        >
+            <h3>工單處理</h3>
+
+            <div
+                id="assignee-group"
+                class="form-group"
+                style="display: none;"
+            >
+                <label for="assignee">
+                    處理人
+                </label>
+
+                <select id="assignee">
+                    <option value="">
+                        尚未指派
+                    </option>
+                </select>
+            </div>
+
+
+            <div class="form-group">
+                <label for="priority">
+                    優先級
+                </label>
+
+                <select id="priority">
+                    <option value="low">低</option>
+                    <option value="medium">中</option>
+                    <option value="high">高</option>
+                    <option value="critical">緊急</option>
+                </select>
+            </div>
+
+
+            <div class="form-group">
+                <label for="status">
+                    狀態
+                </label>
+
+                <select id="status">
+                </select>
+            </div>
+
+
+            <div class="form-group">
+                <label for="resolution-note">
+                    處理內容 / 解決方式
+                </label>
+
+                <textarea
+                    id="resolution-note"
+                    placeholder="請填寫故障原因、處理步驟與解決結果"
+                ></textarea>
+            </div>
+
+
+            <button
+                id="update-ticket-button"
+                class="update-button"
+            >
+                更新工單
+            </button>
+
+            <p id="update-message"></p>
+        </div>
+
+
+        <div class="card">
+            <h3>操作歷程</h3>
+
+            <div id="ticket-history">
+                載入中...
+            </div>
+        </div>
+
+
+        <a
+            href="/tickets/"
+            class="back-link"
+        >
+            返回工單列表
+        </a>
+
+    </div>
+
+
+    <script>
+        const ticketId = "{{ ticket_id }}";
+
+        let loggedInUser = null;
+        let loadedTicket = null;
+
+
+        function getRoleLabel(role) {
+            const labels = {
+                employee: "一般員工",
+                it_engineer: "IT 工程師",
+                it_manager: "IT 管理者",
+                admin: "系統管理員"
+            };
+
+            return labels[role] || role;
+        }
+
+
+        function getPriorityLabel(priority) {
+            const labels = {
+                low: "低",
+                medium: "中",
+                high: "高",
+                critical: "緊急"
+            };
+
+            return labels[priority] || priority;
+        }
+
+
+        function getStatusLabel(status) {
+            const labels = {
+                open: "待處理",
+                assigned: "已指派",
+                in_progress: "處理中",
+                resolved: "已解決",
+                closed: "已關閉"
+            };
+
+            return labels[status] || status;
+        }
+
+
+        function getHistoryFieldLabel(fieldName) {
+            const labels = {
+                status: "狀態",
+                priority: "優先級",
+                assignee: "處理人",
+                resolution_note: "處理內容"
+            };
+
+            return labels[fieldName] || fieldName;
+        }
+
+
+        function getHistoryValueLabel(
+            fieldName,
+            value
+        ) {
+            if (!value) {
+                return "無";
+            }
+
+            if (fieldName === "status") {
+                return getStatusLabel(value);
+            }
+
+            if (fieldName === "priority") {
+                return getPriorityLabel(value);
+            }
+
+            return value;
+        }
+
+
+        function updateStatusOptions(
+            currentStatus,
+            currentUser,
+            assignee
+        ) {
+            const statusSelect =
+                document.getElementById("status");
+
+            const transitions = {
+                open: [
+                    ["open", "待處理"],
+                    ["assigned", "已指派"]
+                ],
+
+                assigned: [
+                    ["assigned", "已指派"],
+                    ["in_progress", "處理中"]
+                ],
+
+                in_progress: [
+                    ["in_progress", "處理中"],
+                    ["resolved", "已解決"]
+                ],
+
+                resolved: [
+                    ["resolved", "已解決"],
+                    ["closed", "已關閉"]
+                ],
+
+                closed: [
+                    ["closed", "已關閉"]
+                ]
+            };
+
+            let options =
+                transitions[currentStatus] || [];
+
+
+            /*
+                IT Engineer：
+                Assigned 工單只有本人是 Assignee
+                才能看到 In Progress。
+            */
+            if (
+                currentStatus === "assigned"
+                && currentUser
+                && currentUser.role === "it_engineer"
+                && (
+                    !assignee
+                    || assignee.id !== currentUser.id
+                )
+            ) {
+                options = [
+                    ["assigned", "已指派"]
+                ];
+            }
+
+
+            statusSelect.innerHTML = "";
+
+            for (const [value, label] of options) {
+                const option =
+                    document.createElement("option");
+
+                option.value = value;
+                option.textContent = label;
+
+                statusSelect.appendChild(option);
+            }
+
+            statusSelect.value = currentStatus;
+        }
+
+
+        async function refreshAccessToken() {
+            const refreshToken =
+                localStorage.getItem(
+                    "refresh_token"
+                );
+
+            if (!refreshToken) {
+                return null;
+            }
+
+            const response = await fetch(
+                "/api/auth/refresh/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        refresh: refreshToken
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                localStorage.removeItem(
+                    "access_token"
+                );
+
+                localStorage.removeItem(
+                    "refresh_token"
+                );
+
+                return null;
+            }
+
+            const data =
+                await response.json();
+
+            localStorage.setItem(
+                "access_token",
+                data.access
+            );
+
+            return data.access;
+        }
+
+
+        async function loadCurrentUser() {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+            let response = await fetch(
+                "/api/auth/me/",
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return null;
+                }
+
+                response = await fetch(
+                    "/api/auth/me/",
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            }
+
+
+            if (!response.ok) {
+                window.location.href =
+                    "/login/";
+
+                return null;
+            }
+
+
+            const user =
+                await response.json();
+
+            document.getElementById(
+                "current-user"
+            ).textContent =
+                `${user.username}｜${getRoleLabel(user.role)}`;
+
+            return user;
+        }
+
+
+        async function loadITStaff() {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+            let response = await fetch(
+                "/api/users/it-staff/",
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return;
+                }
+
+                response = await fetch(
+                    "/api/users/it-staff/",
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            }
+
+
+            if (!response.ok) {
+                return;
+            }
+
+
+            const staffList =
+                await response.json();
+
+            const assigneeSelect =
+                document.getElementById(
+                    "assignee"
+                );
+
+            assigneeSelect.innerHTML =
+                '<option value="">尚未指派</option>';
+
+
+            for (const staff of staffList) {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    staff.id;
+
+                option.textContent =
+                    `${staff.username} (${getRoleLabel(staff.role)})`;
+
+                assigneeSelect.appendChild(
+                    option
+                );
+            }
+        }
+
+
+        async function loadTicketHistory() {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+            let response = await fetch(
+                `/api/tickets/${ticketId}/history/`,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return;
+                }
+
+                response = await fetch(
+                    `/api/tickets/${ticketId}/history/`,
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            }
+
+
+            const container =
+                document.getElementById(
+                    "ticket-history"
+                );
+
+
+            if (!response.ok) {
+                container.textContent =
+                    "無法載入操作歷程";
+
+                return;
+            }
+
+
+            const historyList =
+                await response.json();
+
+
+            if (historyList.length === 0) {
+                container.textContent =
+                    "目前尚無操作歷程";
+
+                return;
+            }
+
+
+            container.innerHTML = "";
+
+
+            for (const item of historyList) {
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+                row.className =
+                    "history-row";
+
+
+                const changedBy =
+                    item.changed_by
+                        ? item.changed_by.username
+                        : "系統";
+
+
+                const createdAt =
+                    new Date(
+                        item.created_at
+                    ).toLocaleString(
+                        "zh-TW"
+                    );
+
+
+                const fieldLabel =
+                    getHistoryFieldLabel(
+                        item.field_name
+                    );
+
+
+                const oldValue =
+                    getHistoryValueLabel(
+                        item.field_name,
+                        item.old_value
+                    );
+
+
+                const newValue =
+                    getHistoryValueLabel(
+                        item.field_name,
+                        item.new_value
+                    );
+
+
+                row.innerHTML = `
+                    <div>
+                        <strong>${createdAt}</strong>
+                    </div>
+
+                    <div>
+                        ${changedBy}
+                    </div>
+
+                    <div>
+                        ${fieldLabel}：
+                        ${oldValue}
+                        →
+                        ${newValue}
+                    </div>
+                `;
+
+                container.appendChild(row);
+            }
+        }
+
+
+        async function loadTicket(
+            currentUser
+        ) {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+            let response = await fetch(
+                `/api/tickets/${ticketId}/`,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return;
+                }
+
+                response = await fetch(
+                    `/api/tickets/${ticketId}/`,
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            }
+
+
+            const container =
+                document.getElementById(
+                    "ticket-detail"
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+                container.textContent =
+                    "無法載入工單資料";
+
+                return;
+            }
+
+
+            loadedTicket = data;
+
+
+            const assigneeName =
+                data.assignee
+                    ? data.assignee.username
+                    : "尚未指派";
+
+
+            const assigneeSelect =
+                document.getElementById(
+                    "assignee"
+                );
+
+            if (assigneeSelect) {
+                assigneeSelect.value =
+                    data.assignee
+                        ? data.assignee.id
+                        : "";
+            }
+
+
+            const prioritySelect =
+                document.getElementById(
+                    "priority"
+                );
+
+            if (prioritySelect) {
+                prioritySelect.value =
+                    data.priority;
+            }
+
+
+            const resolutionNote =
+                document.getElementById(
+                    "resolution-note"
+                );
+
+            if (resolutionNote) {
+                resolutionNote.value =
+                    data.resolution_note || "";
+            }
+
+
+            updateStatusOptions(
+                data.status,
+                currentUser,
+                data.assignee
+            );
+
+
+            const resolutionText =
+                data.resolution_note
+                    ? data.resolution_note
+                    : "尚未填寫";
+
+
+            container.innerHTML = `
+                <div class="info-grid">
+
+                    <div class="info-label">
+                        工單編號
+                    </div>
+
+                    <div>
+                        ${data.ticket_no}
+                    </div>
+
+
+                    <div class="info-label">
+                        標題
+                    </div>
+
+                    <div>
+                        ${data.title}
+                    </div>
+
+
+                    <div class="info-label">
+                        問題描述
+                    </div>
+
+                    <div>
+                        ${data.description}
+                    </div>
+
+
+                    <div class="info-label">
+                        分類
+                    </div>
+
+                    <div>
+                        ${data.category.name}
+                    </div>
+
+
+                    <div class="info-label">
+                        優先級
+                    </div>
+
+                    <div>
+                        <span
+                            class="badge priority-${data.priority}"
+                        >
+                            ${getPriorityLabel(data.priority)}
+                        </span>
+                    </div>
+
+
+                    <div class="info-label">
+                        狀態
+                    </div>
+
+                    <div>
+                        <span
+                            class="badge status-${data.status}"
+                        >
+                            ${getStatusLabel(data.status)}
+                        </span>
+                    </div>
+
+
+                    <div class="info-label">
+                        回報人
+                    </div>
+
+                    <div>
+                        ${data.reporter.username}
+                    </div>
+
+
+                    <div class="info-label">
+                        處理人
+                    </div>
+
+                    <div>
+                        ${assigneeName}
+                    </div>
+
+
+                    <div class="info-label">
+                        處理內容 / 解決方式
+                    </div>
+
+                    <div>
+                        ${resolutionText}
+                    </div>
+
+                </div>
+            `;
+        }
+
+
+        async function updateTicket() {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+
+            const priority =
+                document.getElementById(
+                    "priority"
+                ).value;
+
+
+            const status =
+                document.getElementById(
+                    "status"
+                ).value;
+
+
+            const resolutionNote =
+                document.getElementById(
+                    "resolution-note"
+                ).value;
+
+
+            const message =
+                document.getElementById(
+                    "update-message"
+                );
+
+
+            /*
+                PATCH 只送真正需要更新的欄位。
+
+                特別注意：
+                assignee_id 只有 IT Manager
+                才能送給後端。
+            */
+            const bodyData = {};
+
+
+            if (
+                loadedTicket
+                && priority !== loadedTicket.priority
+            ) {
+                bodyData.priority =
+                    priority;
+            }
+
+
+            if (
+                loadedTicket
+                && status !== loadedTicket.status
+            ) {
+                bodyData.status =
+                    status;
+            }
+
+
+            if (
+                loadedTicket
+                && resolutionNote
+                    !== (loadedTicket.resolution_note || "")
+            ) {
+                bodyData.resolution_note =
+                    resolutionNote;
+            }
+
+
+            /*
+                只有 IT Manager 才能修改 Assignee。
+            */
+            if (
+                loggedInUser
+                && loggedInUser.role === "it_manager"
+            ) {
+                const assigneeId =
+                    document.getElementById(
+                        "assignee"
+                    ).value;
+
+
+                const currentAssigneeId =
+                    loadedTicket
+                    && loadedTicket.assignee
+                        ? Number(
+                            loadedTicket.assignee.id
+                        )
+                        : null;
+
+
+                const newAssigneeId =
+                    assigneeId
+                        ? Number(assigneeId)
+                        : null;
+
+
+                if (
+                    newAssigneeId
+                    !== currentAssigneeId
+                ) {
+                    bodyData.assignee_id =
+                        newAssigneeId;
+                }
+            }
+
+
+            /*
+                沒有任何變更時，不發 PATCH。
+            */
+            if (
+                Object.keys(bodyData).length === 0
+            ) {
+                message.textContent =
+                    "沒有需要更新的內容";
+
+                return;
+            }
+
+
+            let response = await fetch(
+                `/api/tickets/${ticketId}/`,
+                {
+                    method: "PATCH",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`,
+
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            bodyData
+                        )
+                }
+            );
+
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return;
+                }
+
+
+                response = await fetch(
+                    `/api/tickets/${ticketId}/`,
+                    {
+                        method: "PATCH",
+
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`,
+
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                bodyData
+                            )
+                    }
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+                message.textContent =
+                    "更新成功";
+
+                await loadTicket(
+                    loggedInUser
+                );
+
+                await loadTicketHistory();
+
+                return;
+            }
+
+
+            if (
+                data.errors
+                && data.errors.resolution_note
+            ) {
+                message.textContent =
+                    data.errors.resolution_note[0];
+
+                return;
+            }
+
+
+            if (
+                data.errors
+                && data.errors.status
+            ) {
+                message.textContent =
+                    data.errors.status[0];
+
+                return;
+            }
+
+
+            if (
+                data.errors
+                && data.errors.assignee_id
+            ) {
+                message.textContent =
+                    data.errors.assignee_id[0];
+
+                return;
+            }
+
+
+            message.textContent =
+                JSON.stringify(data);
+        }
+
+
+        async function initializePage() {
+            loggedInUser =
+                await loadCurrentUser();
+
+
+            if (!loggedInUser) {
+                return;
+            }
+
+
+            /*
+                只有 IT Manager 需要載入
+                可指派人員下拉選單。
+            */
+            if (
+                loggedInUser.role ===
+                "it_manager"
+            ) {
+                await loadITStaff();
+            }
+
+
+            await loadTicket(
+                loggedInUser
+            );
+
+            await loadTicketHistory();
+
+
+            if (
+                [
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(
+                    loggedInUser.role
+                )
+            ) {
+                document.getElementById(
+                    "ticket-actions"
+                ).style.display =
+                    "block";
+            }
+
+
+            if (
+                loggedInUser.role ===
+                "it_manager"
+            ) {
+                document.getElementById(
+                    "assignee-group"
+                ).style.display =
+                    "block";
+            }
+        }
+
+
+        document
+            .getElementById(
+                "update-ticket-button"
+            )
+            .addEventListener(
+                "click",
+                updateTicket
+            );
+
+
+        document
+            .getElementById(
+                "logout-button"
+            )
+            .addEventListener(
+                "click",
+                function () {
+                    localStorage.removeItem(
+                        "access_token"
+                    );
+
+                    localStorage.removeItem(
+                        "refresh_token"
+                    );
+
+                    window.location.href =
+                        "/login/";
+                }
+            );
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializePage
+        );
+    </script>
+
+</body>
+</html>

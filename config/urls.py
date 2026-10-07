@@ -16,10 +16,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+)
+from accounts.views import (
+    CurrentUserAPIView,
+    ITStaffListAPIView,
+    AssetAssigneeListAPIView,
+    DepartmentListAPIView,
+)
+
+from tickets.views import (
+    ticket_create_page,
+    ticket_detail_page,
+    ticket_list_page,
+    dashboard_page,
+)
+
+from assets.views import (
+    asset_list_page,
+    asset_detail_page,
+    asset_create_page,
 )
 
 
@@ -35,5 +53,65 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name="token_refresh",
     ),
+    path(
+        "api/auth/me/",
+        CurrentUserAPIView.as_view(),
+        name="current-user",
+    ),
+    path(
+        "api/users/it-staff/",
+        ITStaffListAPIView.as_view(),
+        name="it-staff-list",
+    ),
     path("api/", include("tickets.urls")),
+    path("", include("accounts.urls")),
+    path(
+        "tickets/",
+        ticket_list_page,
+        name="ticket-list-page",
+    ),
+    path(
+        "tickets/create/",
+        ticket_create_page,
+        name="ticket-create-page",
+    ),
+    path(
+        "tickets/<int:pk>/",
+        ticket_detail_page,
+        name="ticket-detail-page",
+    ),
+    path(
+        "dashboard/",
+        dashboard_page,
+        name="dashboard-page",
+    ),
+    path(
+        "api/",
+        include("assets.urls"),
+    ),
+    path(
+        "assets/",
+        asset_list_page,
+        name="asset-list-page",
+    ),
+    path(
+        "assets/create/",
+        asset_create_page,
+        name="asset-create-page",
+    ),
+    path(
+        "assets/<int:pk>/",
+        asset_detail_page,
+        name="asset-detail-page",
+    ),
+    path(
+        "api/users/asset-assignees/",
+        AssetAssigneeListAPIView.as_view(),
+        name="asset-assignee-list",
+    ),
+    path(
+        "api/departments/",
+        DepartmentListAPIView.as_view(),
+        name="department-list",
+    ),
 ]

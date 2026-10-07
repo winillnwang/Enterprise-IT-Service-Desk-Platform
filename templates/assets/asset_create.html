@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>新增資產</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        .page-header {
+            background-color: #1f3b5b;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #logout-button {
+            padding: 7px 14px;
+            border: 1px solid white;
+            border-radius: 6px;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        #logout-button:hover {
+            background-color: white;
+            color: #1f3b5b;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background-color: white;
+            padding: 28px;
+            border-radius: 10px;
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .submit-button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background-color: #1f3b5b;
+            color: white;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background-color: #162c44;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 6px;
+            background-color: #e5e7eb;
+            color: #222;
+            text-decoration: none;
+        }
+
+        #create-message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+
+        <h1>
+            企業 IT 維運暨工單管理平台
+        </h1>
+
+        <div class="user-area">
+
+            <span id="current-user">
+                使用者載入中...
+            </span>
+
+            <button id="logout-button">
+                登出
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="container">
+
+        <div class="card">
+
+            <h2>
+                新增資產
+            </h2>
+
+
+            <div class="form-group">
+
+                <label for="asset-no">
+                    資產編號
+                </label>
+
+                <input
+                    id="asset-no"
+                    type="text"
+                    placeholder="例如：AST-2026-000003"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="name">
+                    資產名稱
+                </label>
+
+                <input
+                    id="name"
+                    type="text"
+                    placeholder="例如：Dell Latitude 5450"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="asset-type">
+                    資產類型
+                </label>
+
+                <select id="asset-type">
+
+                    <option value="laptop">
+                        筆記型電腦
+                    </option>
+
+                    <option value="desktop">
+                        桌上型電腦
+                    </option>
+
+                    <option value="monitor">
+                        螢幕
+                    </option>
+
+                    <option value="phone">
+                        手機
+                    </option>
+
+                    <option value="printer">
+                        印表機
+                    </option>
+
+                    <option value="network">
+                        網路設備
+                    </option>
+
+                    <option value="other">
+                        其他
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="serial-number">
+                    Serial Number
+                </label>
+
+                <input
+                    id="serial-number"
+                    type="text"
+                    placeholder="例如：SN-DELL-003"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="status">
+                    狀態
+                </label>
+
+                <select id="status">
+
+                    <option value="available">
+                        可用
+                    </option>
+
+                    <option value="in_use">
+                        使用中
+                    </option>
+
+                    <option value="maintenance">
+                        維修中
+                    </option>
+
+                    <option value="retired">
+                        已報廢
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="assigned-to">
+                    指派使用者
+                </label>
+
+                <select id="assigned-to">
+
+                    <option value="">
+                        尚未指派
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="department">
+                    部門
+                </label>
+
+                <select id="department">
+
+                    <option value="">
+                        尚未指定
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="purchase-date">
+                    購買日期
+                </label>
+
+                <input
+                    id="purchase-date"
+                    type="date"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="warranty-end">
+                    保固期限
+                </label>
+
+                <input
+                    id="warranty-end"
+                    type="date"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="notes">
+                    備註
+                </label>
+
+                <textarea
+                    id="notes"
+                    placeholder="輸入資產備註"
+                ></textarea>
+
+            </div>
+
+
+            <div class="button-row">
+
+                <button
+                    id="create-button"
+                    class="submit-button"
+                >
+                    建立資產
+                </button>
+
+                <a
+                    href="/assets/"
+                    class="back-link"
+                >
+                    返回資產列表
+                </a>
+
+            </div>
+
+
+            <p id="create-message"></p>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        let currentUser = null;
+
+
+        function getRoleLabel(role) {
+            const labels = {
+                employee: "一般員工",
+                it_engineer: "IT 工程師",
+                it_manager: "IT 管理者",
+                admin: "系統管理員"
+            };
+
+            return labels[role] || role;
+        }
+
+
+        async function refreshAccessToken() {
+            const refreshToken =
+                localStorage.getItem(
+                    "refresh_token"
+                );
+
+            if (!refreshToken) {
+                return null;
+            }
+
+
+            const response = await fetch(
+                "/api/auth/refresh/",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        refresh: refreshToken
+                    })
+                }
+            );
+
+
+            if (!response.ok) {
+                localStorage.removeItem(
+                    "access_token"
+                );
+
+                localStorage.removeItem(
+                    "refresh_token"
+                );
+
+                return null;
+            }
+
+
+            const data =
+                await response.json();
+
+
+            localStorage.setItem(
+                "access_token",
+                data.access
+            );
+
+
+            return data.access;
+        }
+
+
+        async function apiFetch(
+            url,
+            options = {}
+        ) {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+
+            const requestOptions = {
+                ...options,
+
+                headers: {
+                    ...(options.headers || {}),
+
+                    "Authorization":
+                        `Bearer ${accessToken}`
+                }
+            };
+
+
+            let response = await fetch(
+                url,
+                requestOptions
+            );
+
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return null;
+                }
+
+
+                requestOptions.headers[
+                    "Authorization"
+                ] =
+                    `Bearer ${accessToken}`;
+
+
+                response = await fetch(
+                    url,
+                    requestOptions
+                );
+            }
+
+
+            return response;
+        }
+
+
+        async function loadCurrentUser() {
+            const response =
+                await apiFetch(
+                    "/api/auth/me/"
+                );
+
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                window.location.href =
+                    "/login/";
+
+                return null;
+            }
+
+
+            const user =
+                await response.json();
+
+
+            document.getElementById(
+                "current-user"
+            ).textContent =
+                `${user.username}｜${getRoleLabel(user.role)}`;
+
+
+            return user;
+        }
+
+
+        async function loadAssignees() {
+            const response =
+                await apiFetch(
+                    "/api/users/asset-assignees/"
+                );
+
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                return;
+            }
+
+
+            const users =
+                await response.json();
+
+
+            const select =
+                document.getElementById(
+                    "assigned-to"
+                );
+
+
+            select.innerHTML =
+                '<option value="">尚未指派</option>';
+
+
+            for (const user of users) {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    user.id;
+
+
+                option.textContent =
+                    `${user.username} (${getRoleLabel(user.role)})`;
+
+
+                select.appendChild(
+                    option
+                );
+            }
+        }
+
+        async function loadDepartments() {
+            const response =
+                await apiFetch(
+                    "/api/departments/"
+                );
+
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                return;
+            }
+
+
+            const departments =
+                await response.json();
+
+
+            const select =
+                document.getElementById(
+                    "department"
+                );
+
+
+            select.innerHTML =
+                '<option value="">尚未指定</option>';
+
+
+            for (const department of departments) {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    department.id;
+
+
+                option.textContent =
+                    `${department.code} - ${department.name}`;
+
+
+                select.appendChild(
+                    option
+                );
+            }
+        }
+        async function createAsset() {
+            const message =
+                document.getElementById(
+                    "create-message"
+                );
+
+
+            const assetNo =
+                document.getElementById(
+                    "asset-no"
+                ).value.trim();
+
+
+            const name =
+                document.getElementById(
+                    "name"
+                ).value.trim();
+
+
+            const assetType =
+                document.getElementById(
+                    "asset-type"
+                ).value;
+
+
+            const serialNumber =
+                document.getElementById(
+                    "serial-number"
+                ).value.trim();
+
+
+            const status =
+                document.getElementById(
+                    "status"
+                ).value;
+
+
+            const assignedToValue =
+                document.getElementById(
+                    "assigned-to"
+                ).value;
+
+            const departmentValue =
+                document.getElementById(
+                    "department"
+                ).value;
+
+            const purchaseDate =
+                document.getElementById(
+                    "purchase-date"
+                ).value;
+
+
+            const warrantyEnd =
+                document.getElementById(
+                    "warranty-end"
+                ).value;
+
+
+            const notes =
+                document.getElementById(
+                    "notes"
+                ).value.trim();
+
+
+            if (!assetNo) {
+                message.textContent =
+                    "請輸入資產編號";
+
+                return;
+            }
+
+
+            if (!name) {
+                message.textContent =
+                    "請輸入資產名稱";
+
+                return;
+            }
+
+
+            const bodyData = {
+                asset_no: assetNo,
+                name: name,
+                asset_type: assetType,
+                status: status,
+                serial_number: serialNumber,
+                notes: notes
+            };
+
+
+            /*
+                有指定使用者才送 assigned_to_id。
+
+                如果 status 沒有手動改成 in_use，
+                後端 business rule
+                會幫我們自動同步。
+            */
+            if (assignedToValue) {
+                bodyData.assigned_to_id =
+                    Number(
+                        assignedToValue
+                    );
+            }
+
+            if (departmentValue) {
+                bodyData.department_id =
+                    Number(
+                        departmentValue
+                    );
+            }
+
+            if (purchaseDate) {
+                bodyData.purchase_date =
+                    purchaseDate;
+            }
+
+
+            if (warrantyEnd) {
+                bodyData.warranty_end =
+                    warrantyEnd;
+            }
+
+
+            const response =
+                await apiFetch(
+                    "/api/assets/",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                bodyData
+                            )
+                    }
+                );
+
+
+            if (!response) {
+                return;
+            }
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+                message.textContent =
+                    "資產建立成功";
+
+
+                setTimeout(
+                    function () {
+                        window.location.href =
+                            "/assets/";
+                    },
+                    500
+                );
+
+
+                return;
+            }
+
+
+            if (data.asset_no) {
+                message.textContent =
+                    data.asset_no[0];
+
+                return;
+            }
+
+
+            if (data.name) {
+                message.textContent =
+                    data.name[0];
+
+                return;
+            }
+
+
+            if (data.assigned_to_id) {
+                message.textContent =
+                    data.assigned_to_id[0];
+
+                return;
+            }
+
+
+            if (data.status) {
+                message.textContent =
+                    data.status[0];
+
+                return;
+            }
+
+
+            message.textContent =
+                JSON.stringify(data);
+        }
+
+
+        async function initializePage() {
+            currentUser =
+                await loadCurrentUser();
+
+
+            if (!currentUser) {
+                return;
+            }
+
+
+            /*
+                Employee 不應進入新增資產頁。
+            */
+            if (
+                ![
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(
+                    currentUser.role
+                )
+            ) {
+                window.location.href =
+                    "/tickets/";
+
+                return;
+            }
+
+
+            await loadAssignees();
+            await loadDepartments();
+        }
+
+
+        document
+            .getElementById(
+                "create-button"
+            )
+            .addEventListener(
+                "click",
+                createAsset
+            );
+
+
+        document
+            .getElementById(
+                "logout-button"
+            )
+            .addEventListener(
+                "click",
+                function () {
+                    localStorage.removeItem(
+                        "access_token"
+                    );
+
+                    localStorage.removeItem(
+                        "refresh_token"
+                    );
+
+
+                    window.location.href =
+                        "/login/";
+                }
+            );
+
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializePage
+        );
+
+    </script>
+
+</body>
+
+</html>

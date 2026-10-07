@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>登入</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        .page-header {
+            background-color: #1f3b5b;
+            color: white;
+            padding: 18px 30px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .login-wrapper {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+            box-sizing: border-box;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background-color: white;
+            padding: 32px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .login-card h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 11px 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #1f3b5b;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .login-button:hover {
+            background-color: #162c44;
+        }
+
+        #message {
+            margin-top: 16px;
+            text-align: center;
+            color: #b91c1c;
+        }
+
+        .hint {
+            margin-top: 18px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+        <h1>企業 IT 維運暨工單管理平台</h1>
+    </div>
+
+    <div class="login-wrapper">
+
+        <div class="login-card">
+
+            <h2>系統登入</h2>
+
+            <form id="login-form">
+
+                <div class="form-group">
+                    <label for="username">
+                        帳號
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        required
+                    >
+                </div>
+
+
+                <div class="form-group">
+                    <label for="password">
+                        密碼
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        required
+                    >
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="login-button"
+                >
+                    登入
+                </button>
+
+                <p id="message"></p>
+
+            </form>
+
+            <div class="hint">
+                請使用系統帳號登入
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+        const form =
+            document.getElementById(
+                "login-form"
+            );
+
+        const message =
+            document.getElementById(
+                "message"
+            );
+
+
+        form.addEventListener(
+            "submit",
+            async function (event) {
+                event.preventDefault();
+
+                const username =
+                    document.getElementById(
+                        "username"
+                    ).value;
+
+                const password =
+                    document.getElementById(
+                        "password"
+                    ).value;
+
+                const response = await fetch(
+                    "/api/auth/login/",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            password: password
+                        })
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem(
+                        "access_token",
+                        data.access
+                    );
+
+                    localStorage.setItem(
+                        "refresh_token",
+                        data.refresh
+                    );
+
+                    window.location.href =
+                        "/tickets/";
+                } else {
+                    message.textContent =
+                        "帳號或密碼錯誤";
+                }
+            }
+        );
+    </script>
+
+</body>
+</html>

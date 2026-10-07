@@ -1,6 +1,10 @@
 from django.contrib import admin
 
-from .models import Ticket, TicketCategory
+from .models import (
+    Ticket,
+    TicketCategory,
+    TicketHistory,
+)
 
 
 @admin.register(TicketCategory)
@@ -43,4 +47,36 @@ class TicketAdmin(admin.ModelAdmin):
         "description",
         "reporter__username",
         "assignee__username",
+    )
+
+@admin.register(TicketHistory)
+class TicketHistoryAdmin(admin.ModelAdmin):
+    list_display = (
+        "ticket",
+        "field_name",
+        "old_value",
+        "new_value",
+        "changed_by",
+        "created_at",
+    )
+
+    list_filter = (
+        "field_name",
+        "created_at",
+    )
+
+    search_fields = (
+        "ticket__ticket_no",
+        "changed_by__username",
+        "old_value",
+        "new_value",
+    )
+
+    readonly_fields = (
+        "ticket",
+        "field_name",
+        "old_value",
+        "new_value",
+        "changed_by",
+        "created_at",
     )

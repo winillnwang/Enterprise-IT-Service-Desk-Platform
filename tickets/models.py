@@ -36,6 +36,9 @@ class Ticket(models.Model):
 
     title = models.CharField(max_length=200)
     description = models.TextField()
+    resolution_note = models.TextField(
+        blank=True,
+    )
 
     category = models.ForeignKey(
         TicketCategory,
@@ -87,3 +90,43 @@ class Ticket(models.Model):
 
     def __str__(self):
         return f"{self.ticket_no} - {self.title}"
+
+
+class TicketHistory(models.Model):
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name="history",
+    )
+
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ticket_changes",
+    )
+
+    field_name = models.CharField(
+        max_length=50,
+    )
+
+    old_value = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    new_value = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.ticket.ticket_no} " f"- {self.field_name}"

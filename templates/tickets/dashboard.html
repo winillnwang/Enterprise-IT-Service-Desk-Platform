@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        .page-header {
+            background-color: #1f3b5b;
+            color: white;
+            padding: 18px 30px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #current-user {
+            font-size: 14px;
+        }
+
+        #logout-button {
+            padding: 7px 14px;
+            border: 1px solid white;
+            border-radius: 6px;
+            background-color: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        #logout-button:hover {
+            background-color: white;
+            color: #1f3b5b;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .dashboard-title {
+            margin-bottom: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .summary-card {
+            background-color: white;
+            padding: 25px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .summary-label {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1f3b5b;
+        }
+
+        .navigation-card {
+            margin-top: 25px;
+
+            background-color: white;
+
+            padding: 25px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .navigation-card h2 {
+            margin-top: 0;
+        }
+
+        .nav-link {
+            display: inline-block;
+
+            margin-right: 10px;
+
+            padding: 10px 18px;
+
+            border-radius: 6px;
+
+            background-color: #1f3b5b;
+
+            color: white;
+
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            background-color: #162c44;
+        }
+
+        .recent-card {
+            margin-top: 25px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+        }
+
+        .view-all-link {
+            color: #1f3b5b;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #555;
+        }
+
+        .detail-link {
+            color: #1f3b5b;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .ticket-badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .priority-low {
+            background-color: #e8f5e9;
+        }
+
+        .priority-medium {
+            background-color: #fff3cd;
+        }
+
+        .priority-high {
+            background-color: #ffe0b2;
+        }
+
+        .priority-critical {
+            background-color: #ffcdd2;
+        }
+
+        .status-open {
+            background-color: #e3f2fd;
+        }
+
+        .status-assigned {
+            background-color: #ede7f6;
+        }
+
+        .status-in_progress {
+            background-color: #fff3e0;
+        }
+
+        .status-resolved {
+            background-color: #e8f5e9;
+        }
+
+        .status-closed {
+            background-color: #eeeeee;
+        }
+
+        .status-distribution-card {
+            margin-top: 25px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .status-distribution-card h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .status-row {
+            margin-bottom: 18px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-row-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 7px;
+        }
+
+        .status-row-header span {
+            color: #555;
+        }
+
+        .status-row-header strong {
+            color: #1f3b5b;
+        }
+
+        .status-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .status-bar-fill {
+            height: 100%;
+            width: 0;
+            background-color: #1f3b5b;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+        @media (
+            max-width: 900px
+        ) {
+            .summary-grid {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+            .distribution-grid {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+        }
+
+        @media (
+            max-width: 600px
+        ) {
+            .summary-grid {
+                grid-template-columns:
+                    1fr;
+            }
+        }
+        .distribution-card {
+            margin-top: 25px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .distribution-card h2 {
+            margin-top: 0;
+        }
+
+        .distribution-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(4, 1fr);
+            gap: 15px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+
+        <h1>
+            企業 IT 維運暨工單管理平台
+        </h1>
+
+        <div class="user-area">
+
+            <span id="current-user">
+                使用者載入中...
+            </span>
+
+            <button id="logout-button">
+                登出
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="container">
+
+        <h2 class="dashboard-title">
+            Dashboard
+        </h2>
+
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+                <div class="summary-label">
+                    總工單數
+                </div>
+
+                <div
+                    id="total-tickets"
+                    class="summary-value"
+                >
+                    -
+                </div>
+            </div>
+
+
+            <div class="summary-card">
+                <div class="summary-label">
+                    待處理
+                </div>
+
+                <div
+                    id="open-tickets"
+                    class="summary-value"
+                >
+                    -
+                </div>
+            </div>
+
+
+            <div class="summary-card">
+                <div class="summary-label">
+                    處理中
+                </div>
+
+                <div
+                    id="in-progress-tickets"
+                    class="summary-value"
+                >
+                    -
+                </div>
+            </div>
+
+
+            <div class="summary-card">
+                <div class="summary-label">
+                    已解決
+                </div>
+
+                <div
+                    id="resolved-tickets"
+                    class="summary-value"
+                >
+                    -
+                </div>
+            </div>
+
+        </div>
+
+        <div class="recent-card">
+
+    <div class="section-header">
+        <h2>最近工單</h2>
+
+        <a
+            href="/tickets/"
+            class="view-all-link"
+        >
+            查看全部
+        </a>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>工單編號</th>
+                    <th>標題</th>
+                    <th>優先級</th>
+                    <th>狀態</th>
+                    <th>處理人</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+
+            <tbody id="recent-ticket-body">
+                <tr>
+                    <td colspan="6">
+                        載入中...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+              <div class="distribution-card">
+
+          <h2>
+              優先級分布
+          </h2>
+
+          <div class="distribution-grid">
+
+              <div class="distribution-item">
+                  <span class="ticket-badge priority-low">
+                      低
+                  </span>
+
+                  <strong id="priority-low-count">
+                      -
+                  </strong>
+              </div>
+
+
+              <div class="distribution-item">
+                  <span class="ticket-badge priority-medium">
+                      中
+                  </span>
+
+                  <strong id="priority-medium-count">
+                      -
+                  </strong>
+              </div>
+
+
+              <div class="distribution-item">
+                  <span class="ticket-badge priority-high">
+                      高
+                  </span>
+
+                  <strong id="priority-high-count">
+                      -
+                  </strong>
+              </div>
+
+
+              <div class="distribution-item">
+                  <span class="ticket-badge priority-critical">
+                      緊急
+                  </span>
+
+                  <strong id="priority-critical-count">
+                      -
+                  </strong>
+              </div>
+
+          </div>
+
+      </div>
+
+        <div class="status-distribution-card">
+
+    <h2>
+        工單狀態分布
+    </h2>
+
+
+    <div class="status-row">
+        <div class="status-row-header">
+            <span>待處理</span>
+
+            <strong id="status-open-count">
+                -
+            </strong>
+        </div>
+
+        <div class="status-bar">
+            <div
+                id="status-open-bar"
+                class="status-bar-fill"
+            ></div>
+        </div>
+    </div>
+
+
+    <div class="status-row">
+        <div class="status-row-header">
+            <span>已指派</span>
+
+            <strong id="status-assigned-count">
+                -
+            </strong>
+        </div>
+
+        <div class="status-bar">
+            <div
+                id="status-assigned-bar"
+                class="status-bar-fill"
+            ></div>
+        </div>
+    </div>
+
+
+    <div class="status-row">
+        <div class="status-row-header">
+            <span>處理中</span>
+
+            <strong id="status-in-progress-count">
+                -
+            </strong>
+        </div>
+
+        <div class="status-bar">
+            <div
+                id="status-in-progress-bar"
+                class="status-bar-fill"
+            ></div>
+        </div>
+    </div>
+
+
+    <div class="status-row">
+        <div class="status-row-header">
+            <span>已解決</span>
+
+            <strong id="status-resolved-count">
+                -
+            </strong>
+        </div>
+
+        <div class="status-bar">
+            <div
+                id="status-resolved-bar"
+                class="status-bar-fill"
+            ></div>
+        </div>
+    </div>
+
+
+    <div class="status-row">
+        <div class="status-row-header">
+            <span>已關閉</span>
+
+            <strong id="status-closed-count">
+                -
+            </strong>
+        </div>
+
+        <div class="status-bar">
+            <div
+                id="status-closed-bar"
+                class="status-bar-fill"
+            ></div>
+        </div>
+    </div>
+
+</div>
+
+        <div class="navigation-card">
+
+            <h2>
+                快速功能
+            </h2>
+
+            <a
+                href="/tickets/"
+                class="nav-link"
+            >
+                工單管理
+            </a>
+
+            <a
+                href="/tickets/create/"
+                class="nav-link"
+            >
+                新增工單
+            </a>
+
+            <a
+                href="/assets/"
+                class="nav-link"
+            >
+                資產管理
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function getPriorityLabel(priority) {
+            const labels = {
+                low: "低",
+                medium: "中",
+                high: "高",
+                critical: "緊急"
+            };
+
+            return labels[priority] || priority;
+        }
+
+
+        function getStatusLabel(status) {
+            const labels = {
+                open: "待處理",
+                assigned: "已指派",
+                in_progress: "處理中",
+                resolved: "已解決",
+                closed: "已關閉"
+            };
+
+            return labels[status] || status;
+        }
+
+        async function refreshAccessToken() {
+            const refreshToken =
+                localStorage.getItem(
+                    "refresh_token"
+                );
+
+            if (!refreshToken) {
+                return null;
+            }
+
+            const response = await fetch(
+                "/api/auth/refresh/",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        refresh: refreshToken
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                localStorage.removeItem(
+                    "access_token"
+                );
+
+                localStorage.removeItem(
+                    "refresh_token"
+                );
+
+                return null;
+            }
+
+            const data =
+                await response.json();
+
+            localStorage.setItem(
+                "access_token",
+                data.access
+            );
+
+            return data.access;
+        }
+
+
+        async function apiFetch(url) {
+            let accessToken =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+            let response = await fetch(
+                url,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (response.status === 401) {
+                accessToken =
+                    await refreshAccessToken();
+
+                if (!accessToken) {
+                    window.location.href =
+                        "/login/";
+
+                    return null;
+                }
+
+                response = await fetch(
+                    url,
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+            }
+
+            return response;
+        }
+
+
+        async function loadCurrentUser() {
+            const response =
+                await apiFetch(
+                    "/api/auth/me/"
+                );
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                window.location.href =
+                    "/login/";
+
+                return;
+            }
+
+            const user =
+                await response.json();
+
+            document.getElementById(
+                "current-user"
+            ).textContent =
+                `${user.username}｜${user.role}`;
+        }
+
+
+        async function loadDashboardSummary() {
+            const response =
+                await apiFetch(
+                    "/api/dashboard/summary/"
+                );
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                return;
+            }
+
+            const data =
+                await response.json();
+
+            document.getElementById(
+                "total-tickets"
+            ).textContent =
+                data.total_tickets;
+
+            document.getElementById(
+                "open-tickets"
+            ).textContent =
+                data.open_tickets;
+
+            document.getElementById(
+                "in-progress-tickets"
+            ).textContent =
+                data.in_progress_tickets;
+
+            document.getElementById(
+                "resolved-tickets"
+            ).textContent =
+                data.resolved_tickets;
+            document.getElementById(
+                "priority-low-count"
+            ).textContent =
+                data.priority_distribution.low;
+
+            document.getElementById(
+                "priority-medium-count"
+            ).textContent =
+                data.priority_distribution.medium;
+
+            document.getElementById(
+                "priority-high-count"
+            ).textContent =
+                data.priority_distribution.high;
+
+            document.getElementById(
+                "priority-critical-count"
+            ).textContent =
+                data.priority_distribution.critical;
+
+            const statusData =
+                data.status_distribution;
+
+            const total =
+                data.total_tickets || 1;
+
+
+            document.getElementById(
+                "status-open-count"
+            ).textContent =
+                statusData.open;
+
+            document.getElementById(
+                "status-assigned-count"
+            ).textContent =
+                statusData.assigned;
+
+            document.getElementById(
+                "status-in-progress-count"
+            ).textContent =
+                statusData.in_progress;
+
+            document.getElementById(
+                "status-resolved-count"
+            ).textContent =
+                statusData.resolved;
+
+            document.getElementById(
+                "status-closed-count"
+            ).textContent =
+                statusData.closed;
+
+
+            document.getElementById(
+                "status-open-bar"
+            ).style.width =
+                `${statusData.open / total * 100}%`;
+
+            document.getElementById(
+                "status-assigned-bar"
+            ).style.width =
+                `${statusData.assigned / total * 100}%`;
+
+            document.getElementById(
+                "status-in-progress-bar"
+            ).style.width =
+                `${statusData.in_progress / total * 100}%`;
+
+            document.getElementById(
+                "status-resolved-bar"
+            ).style.width =
+                `${statusData.resolved / total * 100}%`;
+
+            document.getElementById(
+                "status-closed-bar"
+            ).style.width =
+                `${statusData.closed / total * 100}%`;
+        }
+
+        async function loadRecentTickets() {
+            const response =
+                await apiFetch(
+                    "/api/tickets/?order_by=-created_at"
+                );
+
+            const tbody =
+                document.getElementById(
+                    "recent-ticket-body"
+                );
+
+            if (
+                !response
+                || !response.ok
+            ) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            無法載入最近工單
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            const data =
+                await response.json();
+
+            const tickets =
+                Array.isArray(data)
+                    ? data
+                    : data.results || [];
+
+            const recentTickets =
+                tickets.slice(0, 5);
+
+            if (recentTickets.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            目前沒有工單
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            tbody.innerHTML = "";
+
+            for (const ticket of recentTickets) {
+                const assigneeName =
+                    ticket.assignee
+                        ? ticket.assignee.username
+                        : "尚未指派";
+
+                const row =
+                    document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${ticket.ticket_no}</td>
+
+                    <td>${ticket.title}</td>
+
+                    <td>
+                        <span
+                            class="ticket-badge priority-${ticket.priority}"
+                        >
+                            ${getPriorityLabel(ticket.priority)}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span
+                            class="ticket-badge status-${ticket.status}"
+                        >
+                            ${getStatusLabel(ticket.status)}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${assigneeName}
+                    </td>
+
+                    <td>
+                        <a
+                            href="/tickets/${ticket.id}/"
+                            class="detail-link"
+                        >
+                            查看
+                        </a>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            }
+        }
+        async function initializePage() {
+            await loadCurrentUser();
+            await loadDashboardSummary();
+            await loadRecentTickets();
+        }
+
+        document
+            .getElementById(
+                "logout-button"
+            )
+            .addEventListener(
+                "click",
+                function () {
+                    localStorage.removeItem(
+                        "access_token"
+                    );
+
+                    localStorage.removeItem(
+                        "refresh_token"
+                    );
+
+                    window.location.href =
+                        "/login/";
+                }
+            );
+
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializePage
+        );
+
+    </script>
+
+</body>
+
+</html>

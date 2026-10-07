@@ -1,8 +1,18 @@
 from rest_framework import serializers
 
 from accounts.models import User
-from .models import Ticket, TicketCategory
+from .models import (
+    Ticket,
+    TicketCategory,
+    TicketHistory,
+)
 
+from .services import (
+    create_ticket,
+    update_ticket_with_history,
+    validate_ticket_create,
+    validate_ticket_update,
+)
 
 class TicketCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,7 +23,6 @@ class TicketCategorySerializer(serializers.ModelSerializer):
             "name",
         ]
 
-
 class UserSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -21,6 +30,21 @@ class UserSummarySerializer(serializers.ModelSerializer):
             "id",
             "username",
             "role",
+        ]
+
+
+class TicketHistorySerializer(serializers.ModelSerializer):
+    changed_by = UserSummarySerializer(read_only=True)
+
+    class Meta:
+        model = TicketHistory
+        fields = [
+            "id",
+            "field_name",
+            "old_value",
+            "new_value",
+            "changed_by",
+            "created_at",
         ]
 
 
@@ -55,6 +79,7 @@ class TicketSerializer(serializers.ModelSerializer):
             "ticket_no",
             "title",
             "description",
+            "resolution_note",
             "category",
             "category_id",
             "reporter",
@@ -75,110 +100,43 @@ class TicketSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+    def create(self, validated_data):
+        request = self.context.get("request")
+
+        return create_ticket(
+            validated_data=validated_data,
+            reporter=request.user,
+        )
+
     def validate(self, attrs):
         request = self.context.get("request")
 
         if not request:
             return attrs
 
-        user = request.user
-
-        # Employee 不能修改 priority
-        if (
-            user.role == "employee"
-            and self.instance is not None
-            and "priority" in attrs
-        ):
-            raise serializers.ValidationError(
-                {
-                    "priority": "Employee users cannot change ticket priority."
-                }
+        if self.instance is None:
+            return validate_ticket_create(
+                validated_data=attrs,
+                user=request.user,
             )
 
-        # Employee 不能修改 status
-        if (
-            user.role == "employee"
-            and self.instance is not None
-            and "status" in attrs
-        ):
-            raise serializers.ValidationError(
-                {
-                    "status": "Employee users cannot change ticket status."
-                }
-            )
+        return validate_ticket_update(
+            ticket=self.instance,
+            validated_data=attrs,
+            user=request.user,
+        )
 
-        # Employee 不能指定 assignee
-        if (
-            user.role == "employee"
-            and self.instance is not None
-            and "assignee" in attrs
-        ):
-            raise serializers.ValidationError(
-                {
-                    "assignee_id": (
-                        "Employee users cannot assign tickets."
-                    )
-                }
-            )
+    def update(self, instance, validated_data):
+        request = self.context.get("request")
 
-        # 指派工單時必須有 assignee
-        if self.instance is not None:
-            new_status = attrs.get("status", self.instance.status)
-            new_assignee = attrs.get("assignee", self.instance.assignee)
+        changed_by = (
+            request.user
+            if request and request.user.is_authenticated
+            else None
+        )
 
-            if new_status == Ticket.Status.ASSIGNED and new_assignee is None:
-                raise serializers.ValidationError(
-                    {"assignee_id": ("An assignee is required when assigning a ticket.")}
-                )
-
-            if new_status == Ticket.Status.IN_PROGRESS and new_assignee is None:
-                raise serializers.ValidationError(
-                    {"assignee_id": ("An assignee is required before starting work.")}
-                )
-
-        # Ticket status transition 驗證
-        if self.instance is not None and "status" in attrs:
-            current_status = self.instance.status
-            new_status = attrs["status"]
-
-                # 只有被指派的工程師才能開始處理工單
-            if (
-                new_status == Ticket.Status.IN_PROGRESS
-                and self.instance.assignee != user
-                and user.role not in ["it_manager", "admin"]
-            ):
-                raise serializers.ValidationError(
-                    {
-                        "status": (
-                            "Only the assigned engineer can start working on this ticket."
-                        )
-                    }
-                )
-
-            allowed_transitions = {
-                Ticket.Status.OPEN: [
-                    Ticket.Status.ASSIGNED,
-                ],
-                Ticket.Status.ASSIGNED: [
-                    Ticket.Status.IN_PROGRESS,
-                ],
-                Ticket.Status.IN_PROGRESS: [
-                    Ticket.Status.RESOLVED,
-                ],
-                Ticket.Status.RESOLVED: [
-                    Ticket.Status.CLOSED,
-                ],
-                Ticket.Status.CLOSED: [],
-            }
-
-            if new_status not in allowed_transitions.get(current_status, []):
-                raise serializers.ValidationError(
-                    {
-                        "status": (
-                            f"Invalid status transition: "
-                            f"{current_status} -> {new_status}"
-                        )
-                    }
-                )
-
-        return attrs
+        return update_ticket_with_history(
+            ticket=instance,
+            validated_data=validated_data,
+            changed_by=changed_by,
+        )
