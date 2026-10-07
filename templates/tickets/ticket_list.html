@@ -167,6 +167,20 @@
         background-color: white;
         color: #1f3b5b;
     }
+
+    .secondary-link {
+        display: inline-block;
+        margin-left: 10px;
+        padding: 8px 14px;
+        border-radius: 6px;
+        background-color: #e5e7eb;
+        color: #222;
+        text-decoration: none;
+    }
+
+    .secondary-link:hover {
+        background-color: #d1d5db;
+    }
     </style>
 </head>
 <body>
@@ -195,6 +209,14 @@
     class="create-button"
     >
     新增工單
+    </a>
+
+    <a
+        id="asset-link"
+        href="/assets/"
+        class="secondary-link"
+    >
+        我的資產
     </a>
     </p>
 
@@ -311,6 +333,25 @@
                 "current-user"
             ).textContent =
                 `${user.username}｜${getRoleLabel(user.role)}`;
+
+            const assetLink =
+                document.getElementById(
+                    "asset-link"
+                );
+
+            if (user.role === "employee") {
+                assetLink.textContent =
+                    "我的資產";
+            } else if (
+                [
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(user.role)
+            ) {
+                assetLink.textContent =
+                    "資產管理";
+            }
         }
 
         async function loadTickets() {

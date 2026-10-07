@@ -83,9 +83,17 @@
         }
 
         .back-link {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 10px 18px;
+            border-radius: 6px;
+            background-color: #e5e7eb;
+            color: #222;
             text-decoration: none;
-            color: #1f3b5b;
-            font-weight: bold;
+        }
+
+        .back-link:hover {
+            background-color: #d1d5db;
         }
 
         .filter-card {
@@ -233,19 +241,22 @@
 
         <div class="page-title-row">
 
-            <h2>
+            <h2 id="asset-page-title">
                 資產管理
             </h2>
 
             <div>
                 <a
+                    id="create-asset-link"
                     href="/assets/create/"
                     class="action-link"
+                    style="display: none;"
                 >
                     新增資產
                 </a>
 
                 <a
+                    id="asset-back-link"
                     href="/dashboard/"
                     class="back-link"
                 >
@@ -787,7 +798,6 @@
             }
         }
 
-
         async function initializePage() {
             const user =
                 await loadCurrentUser();
@@ -796,10 +806,62 @@
                 return;
             }
 
+
+            const title =
+                document.getElementById(
+                    "asset-page-title"
+                );
+
+            const backLink =
+                document.getElementById(
+                    "asset-back-link"
+                );
+
+            const createAssetLink =
+                document.getElementById(
+                    "create-asset-link"
+                );
+
+
+            if (
+                user.role === "employee"
+            ) {
+                title.textContent =
+                    "我的資產";
+
+                backLink.href =
+                    "/tickets/";
+
+                backLink.textContent =
+                    "返回我的工單";
+
+                createAssetLink.style.display =
+                    "none";
+            } else if (
+                [
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(
+                    user.role
+                )
+            ) {
+                title.textContent =
+                    "資產管理";
+
+                backLink.href =
+                    "/dashboard/";
+
+                backLink.textContent =
+                    "返回 Dashboard";
+
+                createAssetLink.style.display =
+                    "inline-block";
+            }
+
             await loadDepartments();
             await loadAssets();
-        }
-
+}
 
         document
             .getElementById(
