@@ -183,14 +183,17 @@
                         "password"
                     ).value;
 
+
                 const response = await fetch(
                     "/api/auth/login/",
                     {
                         method: "POST",
+
                         headers: {
                             "Content-Type":
                                 "application/json"
                         },
+
                         body: JSON.stringify({
                             username: username,
                             password: password
@@ -198,26 +201,82 @@
                     }
                 );
 
+
                 const data =
                     await response.json();
 
-                if (response.ok) {
-                    localStorage.setItem(
-                        "access_token",
-                        data.access
-                    );
 
-                    localStorage.setItem(
-                        "refresh_token",
-                        data.refresh
-                    );
-
-                    window.location.href =
-                        "/tickets/";
-                } else {
+                if (!response.ok) {
                     message.textContent =
                         "帳號或密碼錯誤";
+
+                    return;
                 }
+
+
+                localStorage.setItem(
+                    "access_token",
+                    data.access
+                );
+
+                localStorage.setItem(
+                    "refresh_token",
+                    data.refresh
+                );
+
+
+                const userResponse =
+                    await fetch(
+                        "/api/auth/me/",
+                        {
+                            headers: {
+                                "Authorization":
+                                    `Bearer ${data.access}`
+                            }
+                        }
+                    );
+
+
+                if (!userResponse.ok) {
+                    message.textContent =
+                        "無法取得使用者資訊";
+
+                    return;
+                }
+
+
+                const user =
+                    await userResponse.json();
+
+
+                if (
+                    user.role === "employee"
+                ) {
+                    window.location.href =
+                        "/tickets/";
+
+                    return;
+                }
+
+
+                if (
+                    [
+                        "it_engineer",
+                        "it_manager",
+                        "admin"
+                    ].includes(
+                        user.role
+                    )
+                ) {
+                    window.location.href =
+                        "/dashboard/";
+
+                    return;
+                }
+
+
+                message.textContent =
+                    "無法判斷使用者角色";
             }
         );
     </script>

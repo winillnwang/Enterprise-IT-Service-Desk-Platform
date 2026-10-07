@@ -767,7 +767,7 @@
                 window.location.href =
                     "/login/";
 
-                return;
+                return null;
             }
 
             const user =
@@ -777,8 +777,9 @@
                 "current-user"
             ).textContent =
                 `${user.username}｜${user.role}`;
-        }
 
+            return user;
+        }
 
         async function loadDashboardSummary() {
             const response =
@@ -993,7 +994,28 @@
             }
         }
         async function initializePage() {
-            await loadCurrentUser();
+            const user =
+                await loadCurrentUser();
+
+            if (!user) {
+                return;
+            }
+
+            if (
+                ![
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(
+                    user.role
+                )
+            ) {
+                window.location.href =
+                    "/tickets/";
+
+                return;
+            }
+
             await loadDashboardSummary();
             await loadRecentTickets();
         }
