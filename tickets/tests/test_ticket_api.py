@@ -555,3 +555,36 @@ def test_employee_can_view_own_ticket_history():
     assert len(response.data) == 1
     assert response.data[0]["field_name"] == "status"
     assert response.data[0]["new_value"] == Ticket.Status.OPEN
+
+
+@pytest.mark.django_db
+def test_employee_cannot_access_dashboard_summary():
+    employee = User.objects.create_user(
+        username="employee_dashboard_denied",
+        password="test1234",
+        role=User.Role.EMPLOYEE,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=employee)
+
+    response = client.get("/api/dashboard/summary/")
+
+    assert response.status_code == 403
+    assert response.data["success"] is False
+
+
+@pytest.mark.django_db
+def test_it_engineer_can_access_dashboard_summary():
+    engineer = User.objects.create_user(
+        username="engineer_dashboard_allowed",
+        password="test1234",
+        role=User.Role.IT_ENGINEER,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=engineer)
+
+    response = client.get("/api/dashboard/summary/")
+
+    assert response.status_code == 200
