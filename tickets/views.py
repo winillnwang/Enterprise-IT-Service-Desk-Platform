@@ -6,7 +6,11 @@ from rest_framework.generics import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from rest_framework import serializers
+from drf_spectacular.utils import (
+    extend_schema,
+    inline_serializer,
+)
 from .models import (
     Ticket,
     TicketCategory,
@@ -117,6 +121,32 @@ def ticket_detail_page(request, pk):
 class DashboardSummaryAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses={
+            200: inline_serializer(
+                name="DashboardSummaryResponse",
+                fields={
+                    "total_tickets": serializers.IntegerField(),
+                    "open_tickets": serializers.IntegerField(),
+                    "in_progress_tickets": serializers.IntegerField(),
+                    "resolved_tickets": serializers.IntegerField(),
+                    "priority_distribution": serializers.DictField(
+                        child=serializers.IntegerField(),
+                    ),
+                    "status_distribution": serializers.DictField(
+                        child=serializers.IntegerField(),
+                    ),
+                },
+            ),
+            403: inline_serializer(
+                name="DashboardPermissionDeniedResponse",
+                fields={
+                    "success": serializers.BooleanField(),
+                    "message": serializers.CharField(),
+                },
+            ),
+        },
+    )
     def get(self, request):
         if request.user.role not in [
             "it_engineer",

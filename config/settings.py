@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "accounts",
     "tickets",
     "rest_framework",
+    "drf_spectacular",
     "assets",
 ]
 
@@ -175,5 +176,6 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": ("drf_spectacular.openapi.AutoSchema"),
     "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
 }

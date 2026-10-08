@@ -5,6 +5,10 @@ from accounts.models import (
     User,
 )
 from .models import Asset
+from drf_spectacular.utils import (
+    extend_schema_field,
+    inline_serializer,
+)
 
 
 class AssetSerializer(serializers.ModelSerializer):
@@ -139,6 +143,18 @@ class AssetSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    @extend_schema_field(
+        inline_serializer(
+            name="AssetAssignedUser",
+            fields={
+                "id": serializers.IntegerField(),
+                "username": serializers.CharField(),
+                "role": serializers.CharField(),
+            },
+            allow_null=True,
+        )
+    )
+
     def get_assigned_to(self, obj):
         if obj.assigned_to is None:
             return None
@@ -148,6 +164,18 @@ class AssetSerializer(serializers.ModelSerializer):
             "username": obj.assigned_to.username,
             "role": obj.assigned_to.role,
         }
+
+    @extend_schema_field(
+        inline_serializer(
+            name="AssetDepartment",
+            fields={
+                "id": serializers.IntegerField(),
+                "code": serializers.CharField(),
+                "name": serializers.CharField(),
+            },
+            allow_null=True,
+        )
+    )
 
     def get_department(self, obj):
         if obj.department is None:
