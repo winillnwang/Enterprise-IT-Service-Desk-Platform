@@ -299,6 +299,7 @@
 
 
         <a
+            id="back-link"
             href="/tickets/"
             class="back-link"
         >
@@ -1230,6 +1231,28 @@
                 return;
             }
 
+
+            const backLink =
+                document.getElementById(
+                    "back-link"
+                );
+
+
+            if (
+                [
+                    "it_engineer",
+                    "it_manager",
+                    "admin"
+                ].includes(
+                    loggedInUser.role
+                )
+            ) {
+                backLink.href =
+                    "/dashboard/";
+
+                backLink.textContent =
+                    "返回 Dashboard";
+            }
 
             /*
                 只有 IT Manager 需要載入
