@@ -2,8 +2,8 @@ services:
   db:
     image: mysql:8.4.11
     environment:
-      MYSQL_DATABASE: enterprise_it_service_desk_db
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -12,9 +12,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DB_NAME: enterprise_it_service_desk_db
-      DB_USER: root
-      DB_PASSWORD: ""
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: db
       DB_PORT: "3306"
     depends_on:
