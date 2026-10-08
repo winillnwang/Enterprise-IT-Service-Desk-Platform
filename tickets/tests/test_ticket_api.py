@@ -98,6 +98,80 @@ def test_employee_cannot_create_ticket_with_privileged_fields():
 
 
 @pytest.mark.django_db
+def test_it_manager_cannot_set_status_when_creating_ticket():
+    manager = User.objects.create_user(
+        username="manager_create_status_test",
+        password="test1234",
+        role=User.Role.IT_MANAGER,
+    )
+
+    category = TicketCategory.objects.create(
+        code="CREATE_STATUS",
+        name="建立工單狀態限制測試",
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=manager)
+
+    response = client.post(
+        "/api/tickets/",
+        {
+            "title": "主管嘗試指定建立狀態",
+            "description": "建立工單時不可直接指定 status",
+            "category_id": category.id,
+            "priority": Ticket.Priority.MEDIUM,
+            "status": Ticket.Status.ASSIGNED,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "status" in response.data["errors"]
+
+    assert Ticket.objects.filter(title="主管嘗試指定建立狀態").exists() is False
+
+
+@pytest.mark.django_db
+def test_it_manager_cannot_set_assignee_when_creating_ticket():
+    manager = User.objects.create_user(
+        username="manager_create_assignee_test",
+        password="test1234",
+        role=User.Role.IT_MANAGER,
+    )
+
+    engineer = User.objects.create_user(
+        username="engineer_create_assignee_test",
+        password="test1234",
+        role=User.Role.IT_ENGINEER,
+    )
+
+    category = TicketCategory.objects.create(
+        code="CREATE_ASSIGNEE",
+        name="建立工單處理人限制測試",
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=manager)
+
+    response = client.post(
+        "/api/tickets/",
+        {
+            "title": "主管嘗試直接指定處理人",
+            "description": "建立工單時不可直接指定 assignee",
+            "category_id": category.id,
+            "priority": Ticket.Priority.MEDIUM,
+            "assignee_id": engineer.id,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "assignee_id" in response.data["errors"]
+
+    assert Ticket.objects.filter(title="主管嘗試直接指定處理人").exists() is False
+
+
+@pytest.mark.django_db
 def test_employee_cannot_access_another_users_ticket():
     employee1 = User.objects.create_user(
         username="employee_owner",

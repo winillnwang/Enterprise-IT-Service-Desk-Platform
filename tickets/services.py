@@ -13,13 +13,17 @@ def validate_ticket_create(
     validated_data,
     user,
 ):
-    # Employee 建立工單時不可直接指定狀態
-    if user.role == "employee" and "status" in validated_data:
-        raise ValidationError({"status": "Employee users cannot set ticket status."})
+    # 建立工單時不可直接指定狀態
+    if "status" in validated_data:
+        raise ValidationError(
+            {"status": "Ticket status cannot be set when creating a ticket."}
+        )
 
-    # Employee 建立工單時不可指定處理人
-    if user.role == "employee" and "assignee" in validated_data:
-        raise ValidationError({"assignee_id": "Employee users cannot assign tickets."})
+    # 建立工單時不可直接指定處理人
+    if "assignee" in validated_data:
+        raise ValidationError(
+            {"assignee_id": "Ticket assignee cannot be set when creating a ticket."}
+        )
 
     return validated_data
 
@@ -176,8 +180,20 @@ def create_ticket(
     validated_data,
     reporter,
 ):
+    validated_data.pop(
+        "status",
+        None,
+    )
+
+    validated_data.pop(
+        "assignee",
+        None,
+    )
+
     ticket = Ticket.objects.create(
         reporter=reporter,
+        status=Ticket.Status.OPEN,
+        assignee=None,
         **validated_data,
     )
 
