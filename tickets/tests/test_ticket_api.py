@@ -422,6 +422,54 @@ def test_it_manager_can_assign_ticket_via_api():
 
 
 @pytest.mark.django_db
+def test_it_manager_cannot_assign_non_engineer_user():
+    manager = User.objects.create_user(
+        username="manager_assign_non_engineer",
+        password="test1234",
+        role=User.Role.IT_MANAGER,
+    )
+
+    admin = User.objects.create_user(
+        username="admin_assign_target",
+        password="test1234",
+        role=User.Role.ADMIN,
+    )
+
+    category = TicketCategory.objects.create(
+        code="API_ASSIGN_ROLE",
+        name="API 指派角色限制測試",
+    )
+
+    ticket = Ticket.objects.create(
+        title="非工程師指派限制測試",
+        description="IT Manager 不可把 Admin 指派為處理人",
+        category=category,
+        reporter=manager,
+        priority=Ticket.Priority.MEDIUM,
+        status=Ticket.Status.OPEN,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=manager)
+
+    response = client.patch(
+        f"/api/tickets/{ticket.id}/",
+        {
+            "assignee_id": admin.id,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "assignee_id" in response.data["errors"]
+
+    ticket.refresh_from_db()
+
+    assert ticket.assignee is None
+    assert ticket.status == Ticket.Status.OPEN
+
+
+@pytest.mark.django_db
 def test_employee_cannot_view_other_users_ticket_history():
     employee01 = User.objects.create_user(
         username="employee_history_01",

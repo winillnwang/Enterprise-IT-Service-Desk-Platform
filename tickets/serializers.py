@@ -61,11 +61,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     assignee_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.filter(
-            role__in=[
-                User.Role.IT_ENGINEER,
-                User.Role.IT_MANAGER,
-                User.Role.ADMIN,
-            ]
+            role=User.Role.IT_ENGINEER,
         ),
         source="assignee",
         write_only=True,
