@@ -1,60 +1,218 @@
 {% load static %}
+
 <!DOCTYPE html>
+
 <html lang="zh-Hant">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}企業 IT 維運暨工單管理平台{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/app.css' %}">
-    {% block extra_css %}{% endblock %}
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+        企業 IT 維運暨工單管理平台
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/app.css' %}"
+    >
+
+    {% block extra_css %}
+    {% endblock %}
+
 </head>
+
+
 <body>
+
     <div class="app-shell">
-        <aside class="sidebar" aria-label="主要導覽">
+
+        <aside
+            class="sidebar"
+            aria-label="主要導覽"
+        >
+
             <div class="brand">
-                <div class="brand-mark">IT</div>
-                <div>
-                    <strong>IT Service Desk</strong>
-                    <span>維運暨工單管理平台</span>
+
+                <div class="brand-mark">
+                    IT
                 </div>
+
+                <div>
+
+                    <strong>
+                        IT Service Desk
+                    </strong>
+
+                    <span>
+                        維運暨工單管理平台
+                    </span>
+
+                </div>
+
             </div>
+
 
             <nav class="sidebar-nav">
-                <a href="/dashboard/" class="nav-item">首頁</a>
-                <div class="nav-section">工單管理</div>
-                <a href="/tickets/" class="nav-item">工單列表</a>
-                <a href="/tickets/create/" class="nav-item">建立工單</a>
-                <div class="nav-section">資產管理</div>
-                <a href="/assets/" class="nav-item">資產列表</a>
-                <a href="/assets/create/" class="nav-item" data-it-only>新增資產</a>
-                <div class="nav-section">系統</div>
-                <a href="/reports/"class="nav-item"data-it-only>統計報表</a>
-                <a href="#" class="nav-item is-disabled" data-coming-soon>系統管理</a>
+
+                <a
+                    href="/dashboard/"
+                    class="nav-item"
+                    data-it-only
+                    style="display: none;"
+                >
+                    首頁
+                </a>
+
+
+                <div class="nav-section">
+                    工單管理
+                </div>
+
+                <a
+                    href="/tickets/"
+                    class="nav-item"
+                >
+                    工單列表
+                </a>
+
+                <a
+                    href="/tickets/create/"
+                    class="nav-item"
+                >
+                    建立工單
+                </a>
+
+
+                <div class="nav-section">
+                    資產管理
+                </div>
+
+                <a
+                    href="/assets/"
+                    class="nav-item"
+                >
+                    資產列表
+                </a>
+
+                <a
+                    href="/assets/create/"
+                    class="nav-item"
+                    data-it-only
+                    style="display: none;"
+                >
+                    新增資產
+                </a>
+
+
+                <div class="nav-section">
+                    系統
+                </div>
+
+                <a
+                    href="/reports/"
+                    class="nav-item"
+                    data-it-only
+                    style="display: none;"
+                >
+                    統計報表
+                </a>
+
+                <a
+                    href="/system/"
+                    class="nav-item"
+                    data-manager-only
+                    style="display: none;"
+                >
+                    系統管理
+                </a>
+
             </nav>
 
+
             <div class="sidebar-footer">
-                <div id="sidebar-user">使用者載入中...</div>
-                <button type="button" id="sidebar-logout">登出</button>
+
+                <div id="sidebar-user">
+                    使用者載入中...
+                </div>
+
+                <button
+                    type="button"
+                    id="sidebar-logout"
+                >
+                    登出
+                </button>
+
             </div>
+
         </aside>
 
+
         <main class="main-content">
+
             <header class="topbar">
-                <button type="button" class="mobile-menu" id="mobile-menu" aria-label="開啟選單">☰</button>
+
+                <button
+                    type="button"
+                    class="mobile-menu"
+                    id="mobile-menu"
+                    aria-label="開啟選單"
+                >
+                    ☰
+                </button>
+
+
                 <div>
-                    <div class="topbar-kicker">企業 IT 維運</div>
-                    <h1>{% block page_heading %}工作台{% endblock %}</h1>
+
+                    <div class="topbar-kicker">
+                        企業 IT 維運
+                    </div>
+
+                    <h1>
+                        {% block page_heading %}
+                        工作台
+                        {% endblock %}
+                    </h1>
+
                 </div>
-                <div class="topbar-user" id="topbar-user">使用者載入中...</div>
+
+
+                <div
+                    class="topbar-user"
+                    id="topbar-user"
+                >
+                    使用者載入中...
+                </div>
+
             </header>
 
+
             <section class="page-content">
-                {% block content %}{% endblock %}
+
+                {% block content %}
+                {% endblock %}
+
             </section>
+
         </main>
+
     </div>
 
-    <script src="{% static 'js/layout.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+
+    <script
+        src="{% static 'js/layout.js' %}"
+    ></script>
+
+    {% block extra_js %}
+    {% endblock %}
+
 </body>
+
 </html>

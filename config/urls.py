@@ -1,34 +1,34 @@
-"""
-URL configuration for config project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import (
+    include,
+    path,
+)
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
 )
+
 from accounts.views import (
     CurrentUserAPIView,
     ITStaffListAPIView,
     AssetAssigneeListAPIView,
     DepartmentListAPIView,
+)
+
+from accounts.system_management import (
+    SystemUserListCreateAPIView,
+    SystemUserDetailAPIView,
+    SystemDepartmentListCreateAPIView,
+    SystemDepartmentDetailAPIView,
+    SystemTicketCategoryListCreateAPIView,
+    SystemTicketCategoryDetailAPIView,
+    system_management_page,
 )
 
 from tickets.views import (
@@ -45,9 +45,11 @@ from assets.views import (
     asset_create_page,
 )
 
-
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path(
+        "admin/",
+        admin.site.urls,
+    ),
     path(
         "api/schema/",
         SpectacularAPIView.as_view(),
@@ -78,8 +80,73 @@ urlpatterns = [
         ITStaffListAPIView.as_view(),
         name="it-staff-list",
     ),
-    path("api/", include("tickets.urls")),
-    path("", include("accounts.urls")),
+    path(
+        "api/users/asset-assignees/",
+        AssetAssigneeListAPIView.as_view(),
+        name="asset-assignee-list",
+    ),
+    path(
+        "api/departments/",
+        DepartmentListAPIView.as_view(),
+        name="department-list",
+    ),
+    path(
+        "api/admin/users/",
+        SystemUserListCreateAPIView.as_view(),
+        name="system-user-list-create",
+    ),
+    path(
+        "api/admin/users/<int:pk>/",
+        SystemUserDetailAPIView.as_view(),
+        name="system-user-detail",
+    ),
+    path(
+        "api/admin/departments/",
+        SystemDepartmentListCreateAPIView.as_view(),
+        name="system-department-list-create",
+    ),
+    path(
+        "api/admin/departments/<int:pk>/",
+        SystemDepartmentDetailAPIView.as_view(),
+        name="system-department-detail",
+    ),
+    path(
+        "api/admin/ticket-categories/",
+        SystemTicketCategoryListCreateAPIView.as_view(),
+        name="system-ticket-category-list-create",
+    ),
+    path(
+        "api/admin/ticket-categories/<int:pk>/",
+        SystemTicketCategoryDetailAPIView.as_view(),
+        name="system-ticket-category-detail",
+    ),
+    path(
+        "api/",
+        include("tickets.urls"),
+    ),
+    path(
+        "api/",
+        include("assets.urls"),
+    ),
+    path(
+        "",
+        include("accounts.urls"),
+    ),
+    path(
+        "dashboard/",
+        dashboard_page,
+        name="dashboard-page",
+    ),
+    path(
+        "reports/",
+        reports_page,
+        name="reports-page",
+    ),
+    path(
+        "system/",
+        system_management_page,
+        name="system-management-page",
+    ),
     path(
         "tickets/",
         ticket_list_page,
@@ -96,20 +163,6 @@ urlpatterns = [
         name="ticket-detail-page",
     ),
     path(
-        "dashboard/",
-        dashboard_page,
-        name="dashboard-page",
-    ),
-    path(
-        "reports/",
-        reports_page,
-        name="reports-page",
-    ),
-    path(
-        "api/",
-        include("assets.urls"),
-    ),
-    path(
         "assets/",
         asset_list_page,
         name="asset-list-page",
@@ -123,15 +176,5 @@ urlpatterns = [
         "assets/<int:pk>/",
         asset_detail_page,
         name="asset-detail-page",
-    ),
-    path(
-        "api/users/asset-assignees/",
-        AssetAssigneeListAPIView.as_view(),
-        name="asset-assignee-list",
-    ),
-    path(
-        "api/departments/",
-        DepartmentListAPIView.as_view(),
-        name="department-list",
     ),
 ]

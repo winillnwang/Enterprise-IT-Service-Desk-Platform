@@ -1,0 +1,2134 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+系統管理｜企業 IT 維運暨工單管理平台
+{% endblock %}
+
+
+{% block page_heading %}
+系統管理
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    .system-container {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .system-header {
+        margin-bottom: 20px;
+    }
+
+    .system-header h2 {
+        margin: 0;
+        font-size: 22px;
+    }
+
+    .system-header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .system-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .system-tab {
+        padding: 9px 16px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: white;
+        color: #334155;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .system-tab.active {
+        background: var(--navy);
+        border-color: var(--navy);
+        color: white;
+    }
+
+    .system-panel {
+        display: none;
+    }
+
+    .system-panel.active {
+        display: block;
+    }
+
+    .management-grid {
+        display: grid;
+        grid-template-columns:
+            minmax(280px, 360px)
+            minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .management-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow:
+            0 2px 8px
+            rgba(15, 23, 42, 0.05);
+    }
+
+    .management-form {
+        padding: 20px;
+    }
+
+    .management-form h3 {
+        margin: 0 0 18px;
+        font-size: 17px;
+    }
+
+    .management-table-card {
+        overflow: hidden;
+    }
+
+    .management-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .management-table th {
+        padding: 12px 14px;
+        background: #f8fafc;
+        border-bottom:
+            1px solid var(--border);
+        text-align: left;
+        color: #475569;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .management-table td {
+        padding: 13px 14px;
+        border-bottom:
+            1px solid #edf0f3;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .management-table tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .management-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .management-form-group {
+        margin-bottom: 14px;
+    }
+
+    .management-form-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .management-control {
+        width: 100%;
+        min-height: 38px;
+        padding: 8px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: white;
+        font: inherit;
+    }
+
+    textarea.management-control {
+        min-height: 90px;
+        resize: vertical;
+    }
+
+    .management-checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .management-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+    }
+
+    .management-button {
+        min-height: 38px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .management-primary {
+        background: var(--navy);
+        color: white;
+    }
+
+    .management-secondary {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        color: #334155;
+    }
+
+    .management-edit {
+        padding: 6px 10px;
+        border: 0;
+        border-radius: 5px;
+        background: #e8eef5;
+        color: #1f4f7a;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .status-pill {
+        display: inline-block;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-inactive {
+        background: #e5e7eb;
+        color: #475569;
+    }
+
+    .system-message {
+        display: none;
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        border-radius: 7px;
+        font-size: 14px;
+    }
+
+    .system-message.success {
+        display: block;
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .system-message.error {
+        display: block;
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    @media (max-width: 1000px) {
+        .management-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="system-container">
+
+    <div class="system-header">
+
+        <h2>
+            系統管理
+        </h2>
+
+        <p>
+            管理系統使用者、部門與工單分類。
+        </p>
+
+    </div>
+
+
+    <div
+        id="system-message"
+        class="system-message"
+    ></div>
+
+
+    <div class="system-tabs">
+
+        <button
+            type="button"
+            class="system-tab active"
+            data-panel="users-panel"
+        >
+            使用者管理
+        </button>
+
+        <button
+            type="button"
+            class="system-tab"
+            data-panel="departments-panel"
+        >
+            部門管理
+        </button>
+
+        <button
+            type="button"
+            class="system-tab"
+            data-panel="categories-panel"
+        >
+            工單分類
+        </button>
+
+    </div>
+
+
+    <section
+        id="users-panel"
+        class="system-panel active"
+    >
+
+        <div class="management-grid">
+
+            <div class="management-card management-form">
+
+                <h3 id="user-form-title">
+                    新增使用者
+                </h3>
+
+                <input
+                    type="hidden"
+                    id="user-id"
+                >
+
+
+                <div class="management-form-group">
+
+                    <label for="user-username">
+                        帳號
+                    </label>
+
+                    <input
+                        id="user-username"
+                        class="management-control"
+                        type="text"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="user-email">
+                        Email
+                    </label>
+
+                    <input
+                        id="user-email"
+                        class="management-control"
+                        type="email"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="user-first-name">
+                        名
+                    </label>
+
+                    <input
+                        id="user-first-name"
+                        class="management-control"
+                        type="text"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="user-last-name">
+                        姓
+                    </label>
+
+                    <input
+                        id="user-last-name"
+                        class="management-control"
+                        type="text"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="user-role">
+                        角色
+                    </label>
+
+                    <select
+                        id="user-role"
+                        class="management-control"
+                    >
+
+                        <option value="employee">
+                            一般員工
+                        </option>
+
+                        <option value="it_engineer">
+                            IT 工程師
+                        </option>
+
+                        <option value="it_manager">
+                            IT 管理者
+                        </option>
+
+                        <option value="admin">
+                            系統管理員
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="user-department">
+                        部門
+                    </label>
+
+                    <select
+                        id="user-department"
+                        class="management-control"
+                    >
+
+                        <option value="">
+                            無部門
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="user-password">
+                        密碼
+                    </label>
+
+                    <input
+                        id="user-password"
+                        class="management-control"
+                        type="password"
+                        autocomplete="new-password"
+                        placeholder="新增必填；修改時留空代表不變更"
+                    >
+
+                </div>
+
+
+                <div class="management-checkbox-row">
+
+                    <input
+                        id="user-active"
+                        type="checkbox"
+                        checked
+                    >
+
+                    <label for="user-active">
+                        啟用帳號
+                    </label>
+
+                </div>
+
+
+                <div class="management-actions">
+
+                    <button
+                        type="button"
+                        id="save-user"
+                        class="
+                            management-button
+                            management-primary
+                        "
+                    >
+                        儲存
+                    </button>
+
+                    <button
+                        type="button"
+                        id="reset-user"
+                        class="
+                            management-button
+                            management-secondary
+                        "
+                    >
+                        清除
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="management-card management-table-card">
+
+                <div class="table-scroll">
+
+                    <table class="management-table">
+
+                        <thead>
+
+                            <tr>
+                                <th>帳號</th>
+                                <th>Email</th>
+                                <th>角色</th>
+                                <th>部門</th>
+                                <th>狀態</th>
+                                <th>操作</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="user-table-body">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section
+        id="departments-panel"
+        class="system-panel"
+    >
+
+        <div class="management-grid">
+
+            <div class="management-card management-form">
+
+                <h3 id="department-form-title">
+                    新增部門
+                </h3>
+
+                <input
+                    type="hidden"
+                    id="department-id"
+                >
+
+
+                <div class="management-form-group">
+
+                    <label for="department-code">
+                        部門代碼
+                    </label>
+
+                    <input
+                        id="department-code"
+                        class="management-control"
+                        type="text"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="department-name">
+                        部門名稱
+                    </label>
+
+                    <input
+                        id="department-name"
+                        class="management-control"
+                        type="text"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="department-description">
+                        說明
+                    </label>
+
+                    <textarea
+                        id="department-description"
+                        class="management-control"
+                    ></textarea>
+
+                </div>
+
+
+                <div class="management-actions">
+
+                    <button
+                        type="button"
+                        id="save-department"
+                        class="
+                            management-button
+                            management-primary
+                        "
+                    >
+                        儲存
+                    </button>
+
+                    <button
+                        type="button"
+                        id="reset-department"
+                        class="
+                            management-button
+                            management-secondary
+                        "
+                    >
+                        清除
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="management-card management-table-card">
+
+                <div class="table-scroll">
+
+                    <table class="management-table">
+
+                        <thead>
+
+                            <tr>
+                                <th>代碼</th>
+                                <th>名稱</th>
+                                <th>說明</th>
+                                <th>操作</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="department-table-body">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section
+        id="categories-panel"
+        class="system-panel"
+    >
+
+        <div class="management-grid">
+
+            <div class="management-card management-form">
+
+                <h3 id="category-form-title">
+                    新增工單分類
+                </h3>
+
+                <input
+                    type="hidden"
+                    id="category-id"
+                >
+
+
+                <div class="management-form-group">
+
+                    <label for="category-code">
+                        分類代碼
+                    </label>
+
+                    <input
+                        id="category-code"
+                        class="management-control"
+                        type="text"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="category-name">
+                        分類名稱
+                    </label>
+
+                    <input
+                        id="category-name"
+                        class="management-control"
+                        type="text"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="management-form-group">
+
+                    <label for="category-description">
+                        說明
+                    </label>
+
+                    <textarea
+                        id="category-description"
+                        class="management-control"
+                    ></textarea>
+
+                </div>
+
+
+                <div class="management-checkbox-row">
+
+                    <input
+                        id="category-active"
+                        type="checkbox"
+                        checked
+                    >
+
+                    <label for="category-active">
+                        啟用分類
+                    </label>
+
+                </div>
+
+
+                <div class="management-actions">
+
+                    <button
+                        type="button"
+                        id="save-category"
+                        class="
+                            management-button
+                            management-primary
+                        "
+                    >
+                        儲存
+                    </button>
+
+                    <button
+                        type="button"
+                        id="reset-category"
+                        class="
+                            management-button
+                            management-secondary
+                        "
+                    >
+                        清除
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="management-card management-table-card">
+
+                <div class="table-scroll">
+
+                    <table class="management-table">
+
+                        <thead>
+
+                            <tr>
+                                <th>代碼</th>
+                                <th>名稱</th>
+                                <th>說明</th>
+                                <th>狀態</th>
+                                <th>操作</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="category-table-body">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+    let systemUsers = [];
+    let systemDepartments = [];
+    let systemCategories = [];
+
+
+    function showMessage(
+        message,
+        type
+    ) {
+        const element =
+            document.getElementById(
+                "system-message"
+            );
+
+        element.textContent =
+            message;
+
+        element.className =
+            `system-message ${type}`;
+    }
+
+
+    function clearMessage() {
+        const element =
+            document.getElementById(
+                "system-message"
+            );
+
+        element.textContent =
+            "";
+
+        element.className =
+            "system-message";
+    }
+
+
+    async function systemApiFetch(
+        url,
+        options = {}
+    ) {
+        let accessToken =
+            localStorage.getItem(
+                "access_token"
+            );
+
+
+        const headers = {
+            ...(options.headers || {}),
+            "Authorization":
+                `Bearer ${accessToken}`
+        };
+
+
+        let response =
+            await fetch(
+                url,
+                {
+                    ...options,
+                    headers
+                }
+            );
+
+
+        if (response.status === 401) {
+            const refreshToken =
+                localStorage.getItem(
+                    "refresh_token"
+                );
+
+
+            if (!refreshToken) {
+                window.location.href =
+                    "/login/";
+
+                return null;
+            }
+
+
+            const refreshResponse =
+                await fetch(
+                    "/api/auth/refresh/",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            refresh:
+                                refreshToken
+                        })
+                    }
+                );
+
+
+            if (!refreshResponse.ok) {
+                localStorage.removeItem(
+                    "access_token"
+                );
+
+                localStorage.removeItem(
+                    "refresh_token"
+                );
+
+                window.location.href =
+                    "/login/";
+
+                return null;
+            }
+
+
+            const refreshData =
+                await refreshResponse.json();
+
+
+            accessToken =
+                refreshData.access;
+
+
+            localStorage.setItem(
+                "access_token",
+                accessToken
+            );
+
+
+            response =
+                await fetch(
+                    url,
+                    {
+                        ...options,
+
+                        headers: {
+                            ...(options.headers || {}),
+
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+        }
+
+
+        return response;
+    }
+
+
+    async function verifySystemPermission() {
+        const response =
+            await systemApiFetch(
+                "/api/auth/me/"
+            );
+
+
+        if (
+            !response
+            || !response.ok
+        ) {
+            return false;
+        }
+
+
+        const user =
+            await response.json();
+
+
+        if (
+            ![
+                "it_manager",
+                "admin"
+            ].includes(
+                user.role
+            )
+        ) {
+            window.location.href =
+                "/dashboard/";
+
+            return false;
+        }
+
+
+        return true;
+    }
+
+
+    function roleLabel(role) {
+        const labels = {
+            employee:
+                "一般員工",
+
+            it_engineer:
+                "IT 工程師",
+
+            it_manager:
+                "IT 管理者",
+
+            admin:
+                "系統管理員"
+        };
+
+
+        return labels[role] || role;
+    }
+
+
+    function normalizeList(data) {
+        return Array.isArray(data)
+            ? data
+            : data.results || [];
+    }
+
+
+    async function loadDepartments() {
+        const response =
+            await systemApiFetch(
+                "/api/admin/departments/"
+            );
+
+
+        if (
+            !response
+            || !response.ok
+        ) {
+            return;
+        }
+
+
+        systemDepartments =
+            normalizeList(
+                await response.json()
+            );
+
+
+        renderDepartments();
+
+        renderDepartmentOptions();
+    }
+
+
+    function renderDepartmentOptions() {
+        const select =
+            document.getElementById(
+                "user-department"
+            );
+
+
+        select.innerHTML = `
+            <option value="">
+                無部門
+            </option>
+        `;
+
+
+        systemDepartments.forEach(
+            department => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    department.id;
+
+                option.textContent =
+                    `${department.code} - ${department.name}`;
+
+                select.appendChild(
+                    option
+                );
+            }
+        );
+    }
+
+
+    async function loadUsers() {
+        const response =
+            await systemApiFetch(
+                "/api/admin/users/"
+            );
+
+
+        if (
+            !response
+            || !response.ok
+        ) {
+            return;
+        }
+
+
+        systemUsers =
+            normalizeList(
+                await response.json()
+            );
+
+
+        renderUsers();
+    }
+
+
+    function renderUsers() {
+        const tbody =
+            document.getElementById(
+                "user-table-body"
+            );
+
+
+        tbody.innerHTML =
+            "";
+
+
+        systemUsers.forEach(
+            user => {
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                const department =
+                    user.department
+                        ? user.department.name
+                        : "—";
+
+
+                row.innerHTML = `
+                    <td>
+                        ${user.username}
+                    </td>
+
+                    <td>
+                        ${user.email || "—"}
+                    </td>
+
+                    <td>
+                        ${roleLabel(user.role)}
+                    </td>
+
+                    <td>
+                        ${department}
+                    </td>
+
+                    <td>
+                        <span
+                            class="
+                                status-pill
+                                ${
+                                    user.is_active
+                                        ? "status-active"
+                                        : "status-inactive"
+                                }
+                            "
+                        >
+                            ${
+                                user.is_active
+                                    ? "啟用"
+                                    : "停用"
+                            }
+                        </span>
+                    </td>
+
+                    <td>
+                        <button
+                            type="button"
+                            class="management-edit"
+                            data-user-id="${user.id}"
+                        >
+                            編輯
+                        </button>
+                    </td>
+                `;
+
+
+                tbody.appendChild(
+                    row
+                );
+            }
+        );
+
+
+        tbody
+            .querySelectorAll(
+                "[data-user-id]"
+            )
+            .forEach(
+                button => {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            editUser(
+                                Number(
+                                    button.dataset.userId
+                                )
+                            );
+
+                        }
+                    );
+
+                }
+            );
+    }
+
+
+    function resetUserForm() {
+        document.getElementById(
+            "user-id"
+        ).value = "";
+
+        document.getElementById(
+            "user-username"
+        ).value = "";
+
+        document.getElementById(
+            "user-email"
+        ).value = "";
+
+        document.getElementById(
+            "user-first-name"
+        ).value = "";
+
+        document.getElementById(
+            "user-last-name"
+        ).value = "";
+
+        document.getElementById(
+            "user-role"
+        ).value =
+            "employee";
+
+        document.getElementById(
+            "user-department"
+        ).value = "";
+
+        document.getElementById(
+            "user-password"
+        ).value = "";
+
+        document.getElementById(
+            "user-active"
+        ).checked =
+            true;
+
+        document.getElementById(
+            "user-form-title"
+        ).textContent =
+            "新增使用者";
+    }
+
+
+    function editUser(id) {
+        const user =
+            systemUsers.find(
+                item =>
+                    item.id === id
+            );
+
+
+        if (!user) {
+            return;
+        }
+
+
+        document.getElementById(
+            "user-id"
+        ).value =
+            user.id;
+
+        document.getElementById(
+            "user-username"
+        ).value =
+            user.username || "";
+
+        document.getElementById(
+            "user-email"
+        ).value =
+            user.email || "";
+
+        document.getElementById(
+            "user-first-name"
+        ).value =
+            user.first_name || "";
+
+        document.getElementById(
+            "user-last-name"
+        ).value =
+            user.last_name || "";
+
+        document.getElementById(
+            "user-role"
+        ).value =
+            user.role;
+
+        document.getElementById(
+            "user-department"
+        ).value =
+            user.department
+                ? user.department.id
+                : "";
+
+        document.getElementById(
+            "user-password"
+        ).value =
+            "";
+
+        document.getElementById(
+            "user-active"
+        ).checked =
+            user.is_active;
+
+        document.getElementById(
+            "user-form-title"
+        ).textContent =
+            "編輯使用者";
+    }
+
+
+    async function saveUser() {
+        clearMessage();
+
+
+        const id =
+            document.getElementById(
+                "user-id"
+            ).value;
+
+
+        const password =
+            document.getElementById(
+                "user-password"
+            ).value;
+
+
+        const departmentValue =
+            document.getElementById(
+                "user-department"
+            ).value;
+
+
+        const payload = {
+            username:
+                document.getElementById(
+                    "user-username"
+                ).value,
+
+            email:
+                document.getElementById(
+                    "user-email"
+                ).value,
+
+            first_name:
+                document.getElementById(
+                    "user-first-name"
+                ).value,
+
+            last_name:
+                document.getElementById(
+                    "user-last-name"
+                ).value,
+
+            role:
+                document.getElementById(
+                    "user-role"
+                ).value,
+
+            department_id:
+                departmentValue
+                    ? Number(
+                        departmentValue
+                    )
+                    : null,
+
+            is_active:
+                document.getElementById(
+                    "user-active"
+                ).checked
+        };
+
+
+        if (password) {
+            payload.password =
+                password;
+        }
+
+
+        const isEditing =
+            Boolean(id);
+
+
+        const response =
+            await systemApiFetch(
+                isEditing
+                    ? `/api/admin/users/${id}/`
+                    : "/api/admin/users/",
+                {
+                    method:
+                        isEditing
+                            ? "PATCH"
+                            : "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
+                }
+            );
+
+
+        if (!response) {
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            showMessage(
+                JSON.stringify(
+                    data
+                ),
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            isEditing
+                ? "使用者更新成功"
+                : "使用者建立成功",
+            "success"
+        );
+
+
+        resetUserForm();
+
+        await loadUsers();
+    }
+
+
+    function renderDepartments() {
+        const tbody =
+            document.getElementById(
+                "department-table-body"
+            );
+
+
+        tbody.innerHTML =
+            "";
+
+
+        systemDepartments.forEach(
+            department => {
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+                    <td>
+                        ${department.code}
+                    </td>
+
+                    <td>
+                        ${department.name}
+                    </td>
+
+                    <td>
+                        ${department.description || "—"}
+                    </td>
+
+                    <td>
+                        <button
+                            type="button"
+                            class="management-edit"
+                            data-department-id="${department.id}"
+                        >
+                            編輯
+                        </button>
+                    </td>
+                `;
+
+
+                tbody.appendChild(
+                    row
+                );
+            }
+        );
+
+
+        tbody
+            .querySelectorAll(
+                "[data-department-id]"
+            )
+            .forEach(
+                button => {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            editDepartment(
+                                Number(
+                                    button.dataset.departmentId
+                                )
+                            );
+
+                        }
+                    );
+
+                }
+            );
+    }
+
+
+    function resetDepartmentForm() {
+        document.getElementById(
+            "department-id"
+        ).value = "";
+
+        document.getElementById(
+            "department-code"
+        ).value = "";
+
+        document.getElementById(
+            "department-name"
+        ).value = "";
+
+        document.getElementById(
+            "department-description"
+        ).value = "";
+
+        document.getElementById(
+            "department-form-title"
+        ).textContent =
+            "新增部門";
+    }
+
+
+    function editDepartment(id) {
+        const department =
+            systemDepartments.find(
+                item =>
+                    item.id === id
+            );
+
+
+        if (!department) {
+            return;
+        }
+
+
+        document.getElementById(
+            "department-id"
+        ).value =
+            department.id;
+
+        document.getElementById(
+            "department-code"
+        ).value =
+            department.code;
+
+        document.getElementById(
+            "department-name"
+        ).value =
+            department.name;
+
+        document.getElementById(
+            "department-description"
+        ).value =
+            department.description || "";
+
+        document.getElementById(
+            "department-form-title"
+        ).textContent =
+            "編輯部門";
+    }
+
+
+    async function saveDepartment() {
+        clearMessage();
+
+
+        const id =
+            document.getElementById(
+                "department-id"
+            ).value;
+
+
+        const payload = {
+            code:
+                document.getElementById(
+                    "department-code"
+                ).value,
+
+            name:
+                document.getElementById(
+                    "department-name"
+                ).value,
+
+            description:
+                document.getElementById(
+                    "department-description"
+                ).value
+        };
+
+
+        const isEditing =
+            Boolean(id);
+
+
+        const response =
+            await systemApiFetch(
+                isEditing
+                    ? `/api/admin/departments/${id}/`
+                    : "/api/admin/departments/",
+                {
+                    method:
+                        isEditing
+                            ? "PATCH"
+                            : "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
+                }
+            );
+
+
+        if (!response) {
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            showMessage(
+                JSON.stringify(
+                    data
+                ),
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            isEditing
+                ? "部門更新成功"
+                : "部門建立成功",
+            "success"
+        );
+
+
+        resetDepartmentForm();
+
+        await loadDepartments();
+
+        await loadUsers();
+    }
+
+
+    async function loadCategories() {
+        const response =
+            await systemApiFetch(
+                "/api/admin/ticket-categories/"
+            );
+
+
+        if (
+            !response
+            || !response.ok
+        ) {
+            return;
+        }
+
+
+        systemCategories =
+            normalizeList(
+                await response.json()
+            );
+
+
+        renderCategories();
+    }
+
+
+    function renderCategories() {
+        const tbody =
+            document.getElementById(
+                "category-table-body"
+            );
+
+
+        tbody.innerHTML =
+            "";
+
+
+        systemCategories.forEach(
+            category => {
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+                    <td>
+                        ${category.code}
+                    </td>
+
+                    <td>
+                        ${category.name}
+                    </td>
+
+                    <td>
+                        ${category.description || "—"}
+                    </td>
+
+                    <td>
+                        <span
+                            class="
+                                status-pill
+                                ${
+                                    category.is_active
+                                        ? "status-active"
+                                        : "status-inactive"
+                                }
+                            "
+                        >
+                            ${
+                                category.is_active
+                                    ? "啟用"
+                                    : "停用"
+                            }
+                        </span>
+                    </td>
+
+                    <td>
+                        <button
+                            type="button"
+                            class="management-edit"
+                            data-category-id="${category.id}"
+                        >
+                            編輯
+                        </button>
+                    </td>
+                `;
+
+
+                tbody.appendChild(
+                    row
+                );
+            }
+        );
+
+
+        tbody
+            .querySelectorAll(
+                "[data-category-id]"
+            )
+            .forEach(
+                button => {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            editCategory(
+                                Number(
+                                    button.dataset.categoryId
+                                )
+                            );
+
+                        }
+                    );
+
+                }
+            );
+    }
+
+
+    function resetCategoryForm() {
+        document.getElementById(
+            "category-id"
+        ).value = "";
+
+        document.getElementById(
+            "category-code"
+        ).value = "";
+
+        document.getElementById(
+            "category-name"
+        ).value = "";
+
+        document.getElementById(
+            "category-description"
+        ).value = "";
+
+        document.getElementById(
+            "category-active"
+        ).checked =
+            true;
+
+        document.getElementById(
+            "category-form-title"
+        ).textContent =
+            "新增工單分類";
+    }
+
+
+    function editCategory(id) {
+        const category =
+            systemCategories.find(
+                item =>
+                    item.id === id
+            );
+
+
+        if (!category) {
+            return;
+        }
+
+
+        document.getElementById(
+            "category-id"
+        ).value =
+            category.id;
+
+        document.getElementById(
+            "category-code"
+        ).value =
+            category.code;
+
+        document.getElementById(
+            "category-name"
+        ).value =
+            category.name;
+
+        document.getElementById(
+            "category-description"
+        ).value =
+            category.description || "";
+
+        document.getElementById(
+            "category-active"
+        ).checked =
+            category.is_active;
+
+        document.getElementById(
+            "category-form-title"
+        ).textContent =
+            "編輯工單分類";
+    }
+
+
+    async function saveCategory() {
+        clearMessage();
+
+
+        const id =
+            document.getElementById(
+                "category-id"
+            ).value;
+
+
+        const payload = {
+            code:
+                document.getElementById(
+                    "category-code"
+                ).value,
+
+            name:
+                document.getElementById(
+                    "category-name"
+                ).value,
+
+            description:
+                document.getElementById(
+                    "category-description"
+                ).value,
+
+            is_active:
+                document.getElementById(
+                    "category-active"
+                ).checked
+        };
+
+
+        const isEditing =
+            Boolean(id);
+
+
+        const response =
+            await systemApiFetch(
+                isEditing
+                    ? `/api/admin/ticket-categories/${id}/`
+                    : "/api/admin/ticket-categories/",
+                {
+                    method:
+                        isEditing
+                            ? "PATCH"
+                            : "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
+                }
+            );
+
+
+        if (!response) {
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            showMessage(
+                JSON.stringify(
+                    data
+                ),
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            isEditing
+                ? "工單分類更新成功"
+                : "工單分類建立成功",
+            "success"
+        );
+
+
+        resetCategoryForm();
+
+        await loadCategories();
+    }
+
+
+    document
+        .querySelectorAll(
+            ".system-tab"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        document
+                            .querySelectorAll(
+                                ".system-tab"
+                            )
+                            .forEach(
+                                tab =>
+                                    tab.classList.remove(
+                                        "active"
+                                    )
+                            );
+
+
+                        document
+                            .querySelectorAll(
+                                ".system-panel"
+                            )
+                            .forEach(
+                                panel =>
+                                    panel.classList.remove(
+                                        "active"
+                                    )
+                            );
+
+
+                        button.classList.add(
+                            "active"
+                        );
+
+
+                        document
+                            .getElementById(
+                                button.dataset.panel
+                            )
+                            .classList.add(
+                                "active"
+                            );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "save-user"
+        )
+        .addEventListener(
+            "click",
+            saveUser
+        );
+
+
+    document
+        .getElementById(
+            "reset-user"
+        )
+        .addEventListener(
+            "click",
+            resetUserForm
+        );
+
+
+    document
+        .getElementById(
+            "save-department"
+        )
+        .addEventListener(
+            "click",
+            saveDepartment
+        );
+
+
+    document
+        .getElementById(
+            "reset-department"
+        )
+        .addEventListener(
+            "click",
+            resetDepartmentForm
+        );
+
+
+    document
+        .getElementById(
+            "save-category"
+        )
+        .addEventListener(
+            "click",
+            saveCategory
+        );
+
+
+    document
+        .getElementById(
+            "reset-category"
+        )
+        .addEventListener(
+            "click",
+            resetCategoryForm
+        );
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        async function () {
+
+            resetUserForm();
+
+            resetDepartmentForm();
+
+            resetCategoryForm();
+
+
+            const allowed =
+                await verifySystemPermission();
+
+
+            if (!allowed) {
+                return;
+            }
+
+
+            await loadDepartments();
+
+            await loadUsers();
+
+            await loadCategories();
+
+        }
+    );
+
+</script>
+
+{% endblock %}
