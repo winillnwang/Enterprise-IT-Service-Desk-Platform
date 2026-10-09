@@ -1,107 +1,91 @@
 # Enterprise IT Service Desk Platform
 
-企業 IT 維運暨工單管理平台，使用 Django REST Framework 建置的企業級 IT Service Desk 後端系統。
+企業 IT 維運暨工單管理平台，以 Django REST Framework 建置，模擬企業 Helpdesk／MIS 的工單生命週期、角色權限、資產管理、統計報表與系統管理流程。
 
-## Project Overview
+本專案以完整業務規則與可驗證的權限控制為核心，而非只有 CRUD。Docker 定位為本機開發與作品展示環境，不宣稱為正式 Production 部署方案。
 
-本專案模擬企業內部 IT Helpdesk / Service Desk 的實際工作流程，提供工單管理、角色權限控制、資產管理、REST API、JWT 驗證與 API 文件等功能。
+## 核心功能
 
-## Features
+- JWT 登入、Token 更新與目前使用者 API
+- 四角色 Role-Based Access Control（RBAC）
+- 工單建立、指派、狀態流程、結案說明與異動歷程
+- 資產建立、指派、部門與狀態管理
+- Dashboard 與統計報表
+- 使用者、部門與工單分類管理
+- OpenAPI Schema 與 Swagger UI
+- 52 個 Pytest 自動化測試
+- Docker Compose 與 GitHub Actions CI
 
-- JWT Authentication
-- Role-Based Access Control (RBAC)
-  - Employee
-  - IT Engineer
-  - IT Manager
-  - Admin
-- Ticket Management
-  - Create ticket
-  - Assign / reassign ticket
-  - Ticket status workflow
-  - Resolution note
-  - Ticket history tracking
-- Asset Management
-  - Asset list / detail / create
-  - Asset assignment
-  - Department association
-  - Asset status management
-- Dashboard Summary
-  - Ticket totals
-  - Status distribution
-  - Priority distribution
-- RESTful API
-- Swagger / OpenAPI Documentation
-- Automated Testing with Pytest
-- Docker / Docker Compose
-- GitHub Actions CI
-
-## Tech Stack
-
-- Python 3.14
-- Django 6.1.1
-- Django REST Framework 3.18.1
-- MySQL 8.4
-- djangorestframework-simplejwt
-- drf-spectacular
-- Pytest
-- Docker
-- Docker Compose
-- GitHub Actions
-
-## System Roles
-
-### Employee
-
-- Create tickets
-- View own tickets
-- View own assigned assets
-- Cannot assign tickets
-- Cannot modify ticket operational status
-- Cannot manage assets
-
-### IT Engineer
-
-- View and handle tickets
-- Update ticket workflow status
-- View dashboard
-- View and manage assets
-
-### IT Manager
-
-- Assign / reassign tickets
-- Manage ticket workflow
-- View dashboard
-- Manage assets
-
-### Admin
-
-- Full administrative access
-- Manage users and system data
-- Access dashboard and operational functions
-
-## Ticket Workflow
+## 系統架構
 
 ```text
-open
-  ↓
-assigned
-  ↓
-in_progress
-  ↓
-resolved
-  ↓
-closed
+Web UI / REST Client
+        │
+        ▼
+Django URL Routing
+        │
+        ▼
+DRF API Views
+  ├─ JWT Authentication
+  └─ RBAC Permissions
+        │
+        ▼
+Serializers / Validation
+        │
+        ├─ Ticket Service Layer
+        │   ├─ Assignment Rules
+        │   ├─ Workflow Rules
+        │   └─ History Recording
+        ▼
+Django ORM → MySQL
 ```
 
-主要流程規則：
+詳細架構請見 `docs/architecture.md`。
 
-- 新建工單預設為 `open`
-- 工單由 IT Manager / Admin 指派後進入 `assigned`
-- 負責的 IT Engineer 可將工單更新為 `in_progress`
-- 工單完成處理時更新為 `resolved`
-- `resolved` 工單需要填寫 resolution note
-- 最後可將工單關閉為 `closed`
-- 工單狀態與重要欄位變更會記錄於 Ticket History
+## 角色與權限
+
+| 功能 | Employee | IT Engineer | IT Manager | Admin |
+| --- | :---: | :---: | :---: | :---: |
+| 建立工單 | ✅ | ✅ | ✅ | ✅ |
+| 查看全部工單 | ❌ | ✅ | ✅ | ✅ |
+| 執行工單流程 | ❌ | ✅ | ✅ | ✅ |
+| 指派／重新指派工單 | ❌ | ❌ | ✅ | ✅ |
+| Dashboard | ❌ | ✅ | ✅ | ✅ |
+| 資產管理 | 僅查看自己的資產 | ✅ | ✅ | ✅ |
+| 統計報表 | ❌ | ✅ | ✅ | ✅ |
+| 系統管理 | ❌ | ❌ | ✅ | ✅ |
+
+系統管理包含使用者、部門與工單分類的建立及更新。使用者採 `is_active` 停用機制，避免刪除帳號破壞歷史關聯與稽核資料。
+
+## 工單流程
+
+```text
+open → assigned → in_progress → resolved → closed
+```
+
+- 新工單預設為 `open`。
+- IT Manager／Admin 指派工程師後進入 `assigned`。
+- 被指派的 IT Engineer 可開始處理並改為 `in_progress`。
+- 轉為 `resolved` 前必須填寫 `resolution_note`。
+- 狀態、負責人等重要欄位異動會寫入 Ticket History。
+- 非法跳轉、偽造 Reporter／Assignee 或越權操作會被拒絕。
+
+## 主要頁面
+
+| URL | 用途 |
+| --- | --- |
+| `/login/` | 登入 |
+| `/dashboard/` | IT Dashboard |
+| `/tickets/` | 工單列表 |
+| `/tickets/create/` | 建立工單 |
+| `/tickets/<id>/` | 工單詳細與流程操作 |
+| `/assets/` | 資產列表 |
+| `/assets/create/` | 建立資產 |
+| `/assets/<id>/` | 資產詳細與更新 |
+| `/reports/` | 統計報表 |
+| `/system/` | 使用者、部門與工單分類管理 |
+
+所有主要後台頁面共用 `templates/base.html`、`static/css/app.css` 與 `static/js/layout.js`。Web UI 使用 localStorage JWT 呼叫 API；敏感資料與管理操作的最終授權由 DRF API 權限檢查執行。
 
 ## API Endpoints
 
@@ -109,89 +93,75 @@ closed
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| POST | `/api/auth/login/` | Obtain JWT access and refresh tokens |
-| POST | `/api/auth/refresh/` | Refresh JWT access token |
-| GET | `/api/auth/me/` | Get current authenticated user |
+| POST | `/api/auth/login/` | 取得 Access／Refresh Token |
+| POST | `/api/auth/refresh/` | 更新 Access Token |
+| GET | `/api/auth/me/` | 取得目前使用者 |
 
-### Tickets
-
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/ticket-categories/` | List ticket categories |
-| GET | `/api/tickets/` | List tickets |
-| POST | `/api/tickets/` | Create a ticket |
-| GET | `/api/tickets/<id>/` | Retrieve ticket details |
-| PATCH | `/api/tickets/<id>/` | Update a ticket |
-| GET | `/api/tickets/<id>/history/` | View ticket history |
-
-### Dashboard
+### Tickets、Dashboard 與 Reports
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/dashboard/summary/` | Get ticket dashboard statistics |
+| GET | `/api/ticket-categories/` | 可用工單分類 |
+| GET, POST | `/api/tickets/` | 查詢／建立工單 |
+| GET, PATCH | `/api/tickets/<id>/` | 工單詳細／更新 |
+| GET | `/api/tickets/<id>/history/` | 工單異動歷程 |
+| GET | `/api/dashboard/summary/` | Dashboard 摘要 |
+| GET | `/api/reports/summary/` | 報表摘要與篩選 |
 
 ### Assets
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/assets/` | List accessible assets |
-| POST | `/api/assets/` | Create an asset |
-| GET | `/api/assets/<id>/` | Retrieve asset details |
-| PATCH | `/api/assets/<id>/` | Update an asset |
+| GET, POST | `/api/assets/` | 查詢／建立資產 |
+| GET, PATCH | `/api/assets/<id>/` | 資產詳細／更新 |
 
-### Users and Departments
+### System Management
+
+下列 API 僅允許 IT Manager 與 Admin：
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/api/users/it-staff/` | List IT staff |
-| GET | `/api/users/asset-assignees/` | List available asset assignees |
-| GET | `/api/departments/` | List departments |
+| GET, POST | `/api/admin/users/` | 查詢／建立使用者 |
+| GET, PATCH | `/api/admin/users/<id>/` | 使用者詳細／更新 |
+| GET, POST | `/api/admin/departments/` | 查詢／建立部門 |
+| GET, PATCH | `/api/admin/departments/<id>/` | 部門詳細／更新 |
+| GET, POST | `/api/admin/ticket-categories/` | 查詢／建立分類 |
+| GET, PATCH | `/api/admin/ticket-categories/<id>/` | 分類詳細／更新 |
 
-### API Documentation
+其他輔助 API：
 
-| Endpoint | Description |
-| --- | --- |
-| `/api/docs/` | Swagger UI |
-| `/api/schema/` | OpenAPI schema |
-
-## Local Setup
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/winillnwang/Enterprise-IT-Service-Desk-Platform.git
-cd Enterprise-IT-Service-Desk-Platform
+```text
+GET /api/users/it-staff/
+GET /api/users/asset-assignees/
+GET /api/departments/
 ```
 
-### 2. Create a virtual environment
+OpenAPI Schema：`/api/schema/`
 
-```bash
-python -m venv venv2
-```
+Swagger UI：`/api/docs/`
 
-Windows：
+## 本機啟動
+
+### 1. 建立虛擬環境並安裝套件
 
 ```bat
+python -m venv venv2
 venv2\Scripts\activate
-```
-
-### 3. Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
-
-Copy `.env.example` to `.env`:
+### 2. 設定環境變數
 
 ```bat
 copy .env.example .env
 ```
 
-Then update `.env` with your local MySQL configuration:
+依本機環境調整 `.env`：
 
 ```text
+DJANGO_SECRET_KEY=請替換成自己的金鑰
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
 DB_NAME=enterprise_it_service_desk_db
 DB_USER=root
 DB_PASSWORD=your_mysql_password
@@ -199,293 +169,104 @@ DB_HOST=127.0.0.1
 DB_PORT=8888
 ```
 
-Create the MySQL database before running migrations.
+`DJANGO_ALLOWED_HOSTS` 使用逗號分隔。正式環境必須提供獨立的 `DJANGO_SECRET_KEY`，並將 `DJANGO_DEBUG` 設為 `False`。
 
-### 5. Run database migrations
+### 3. 建立資料表並啟動
 
-```bash
+```bat
 python manage.py migrate
-```
-
-### 6. Start the development server
-
-```bash
 python manage.py runserver
 ```
 
-Application:
+應用程式：`http://127.0.0.1:8000/`
 
-```text
-http://127.0.0.1:8000/
-```
-
-Swagger UI:
-
-```text
-http://127.0.0.1:8000/api/docs/
-```
-
-### 7. Run tests
-
-```bash
-pytest -v
-```
-
-## Docker Setup
-
-The application can also be started with Docker Compose.
-
-### 1. Configure environment variables
-
-Make sure `.env` exists:
+## Docker
 
 ```bat
 copy .env.example .env
+docker compose up --build
 ```
 
-Update the database credentials in `.env` as needed.
+Compose 會啟動 Django 與 MySQL 8.4，並等待 MySQL healthcheck 通過後再啟動應用程式。容器預設使用 Django development server，適合本機開發與 Demo。
 
-### 2. Build and start the containers
-
-```bash
-docker compose up -d --build
-```
-
-Docker Compose starts:
-
-- Django application container
-- MySQL 8.4 database container
-- Persistent MySQL volume
-
-### 3. Run database migrations
-
-```bash
+```bat
 docker compose exec app python manage.py migrate
-```
-
-### 4. Verify Django configuration
-
-```bash
 docker compose exec app python manage.py check
-```
-
-### 5. Run tests inside Docker
-
-```bash
 docker compose exec app pytest -v
-```
-
-### 6. Access the application
-
-```text
-http://127.0.0.1:8000/
-```
-
-Swagger UI:
-
-```text
-http://127.0.0.1:8000/api/docs/
-```
-
-### 7. Stop the containers
-
-```bash
 docker compose down
 ```
 
-## Continuous Integration
+## 測試與品質檢查
 
-GitHub Actions is configured to automatically validate the project on pushes and pull requests to the `master` branch.
+52 個測試涵蓋 Authentication、RBAC、Ticket API／Workflow／History、Dashboard、Reports、Asset Management 與 System Management。
 
-The CI pipeline performs the following steps:
-
-1. Checks out the repository
-2. Sets up Python 3.14
-3. Starts a MySQL 8.4 service
-4. Installs system and Python dependencies
-5. Runs the Django system check
-6. Runs the complete Pytest test suite
-
-Workflow configuration:
-
-```text
-.github/workflows/ci.yml
-```
-
-Current automated test suite:
-
-```text
-40 tests
-```
-
-The CI pipeline helps ensure that changes do not break existing application behavior before they are integrated into the project.
-
-## Project Structure
-
-```text
-Enterprise-IT-Service-Desk-Platform/
-├── accounts/
-│   ├── models.py
-│   ├── serializers.py
-│   ├── urls.py
-│   └── views.py
-│
-├── tickets/
-│   ├── models.py
-│   ├── permissions.py
-│   ├── serializers.py
-│   ├── services.py
-│   ├── urls.py
-│   ├── views.py
-│   └── tests/
-│
-├── assets/
-│   ├── models.py
-│   ├── permissions.py
-│   ├── serializers.py
-│   ├── urls.py
-│   ├── views.py
-│   └── tests/
-│
-├── config/
-│   ├── exceptions.py
-│   ├── settings.py
-│   ├── urls.py
-│   ├── asgi.py
-│   └── wsgi.py
-│
-├── templates/
-│   ├── accounts/
-│   ├── tickets/
-│   └── assets/
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
-├── compose.yaml
-├── Dockerfile
-├── manage.py
-├── pytest.ini
-├── requirements.txt
-├── .env.example
-└── README.md
-```
-
-### Application Responsibilities
-
-- `accounts` — User accounts, departments, authentication-related APIs, and role information
-- `tickets` — Ticket lifecycle, RBAC rules, workflow validation, ticket history, dashboard statistics, and service-layer business logic
-- `assets` — IT asset inventory, assignment rules, department association, and asset permissions
-- `config` — Django project configuration, global URL routing, REST framework configuration, and exception handling
-- `templates` — Web interface for login, ticket operations, dashboard, and asset management
-- `.github/workflows` — GitHub Actions continuous integration workflow
-
-## Architecture
-
-The project separates API handling, business rules, persistence, and infrastructure concerns.
-
-```text
-Client / Web UI
-       │
-       ▼
-Django URL Routing
-       │
-       ▼
-DRF API Views
-       │
-       ├── JWT Authentication
-       ├── RBAC / Permissions
-       │
-       ▼
-Serializers
-       │
-       ▼
-Service Layer
-       │
-       ▼
-Django ORM
-       │
-       ▼
-MySQL
-```
-
-For ticket operations, business rules such as ticket creation, assignment, workflow transitions, and history recording are handled through the service layer instead of being concentrated entirely inside API views.
-
-Cross-cutting concerns include:
-
-- JWT authentication
-- Role-based authorization
-- Validation and exception handling
-- Application logging
-- Automated testing
-- OpenAPI documentation
-- Docker containerization
-- GitHub Actions CI
-
-## Testing
-
-The project includes an automated Pytest test suite covering API permissions, RBAC rules, ticket workflow constraints, asset business rules, and history tracking.
-
-Current test suite:
-
-```text
-40 tests
-```
-
-### Ticket API and RBAC
-
-Tests verify that:
-
-- The authenticated user is automatically used as the ticket reporter
-- Employees can only access their own tickets
-- Employees cannot submit privileged ticket fields
-- IT Engineers can view operational ticket data but cannot assign tickets
-- IT Managers can assign tickets to IT Engineers
-- Non-engineer users cannot be assigned as ticket assignees
-- Ticket history access respects user permissions
-- Dashboard access is restricted to authorized IT roles
-
-### Ticket Workflow
-
-Tests verify that:
-
-- Employees cannot change operational ticket status
-- Only the assigned IT Engineer can start work on a ticket
-- Invalid workflow transitions are rejected
-- Tickets cannot be resolved without a resolution note
-- Resolved tickets can be closed
-- Resolved tickets cannot have their assignee removed
-- Ticket updates automatically create history records
-- Multiple field changes create corresponding history records
-
-### Asset Management
-
-Tests verify that:
-
-- Employees only see assets assigned to themselves
-- Employees cannot create or update assets
-- IT staff can access the full asset inventory
-- Assigning a user automatically changes the asset status to `in_use`
-- Removing an assigned user changes an `in_use` asset back to `available`
-- `in_use` assets require an assigned user
-- Asset departments can be updated by IT staff
-- Asset lists support search and filtering by status, asset type, and department
-
-Run the complete test suite with:
-
-```bash
+```bat
+python manage.py check
+python manage.py makemigrations --check --dry-run
 pytest -v
 ```
 
-## Future Improvements
+目前驗證基準：
 
-The current version focuses on the core Service Desk backend architecture and business workflow. Possible future extensions include:
+```text
+System check identified no issues (0 silenced).
+No changes detected
+52 passed
+```
 
-- Asynchronous background tasks with Celery
-- Redis as a task broker / caching layer
-- Email or in-app notifications for ticket events
-- SLA tracking and escalation rules
-- More detailed audit logging
-- Advanced dashboard analytics and reporting
-- Production deployment configuration
+## CI
+
+`.github/workflows/ci.yml` 會在推送或 Pull Request 到 `master` 時啟動 MySQL 8.4、安裝依賴、執行 Django system check、檢查遺漏 migration，並執行完整測試。
+
+## 專案結構
+
+```text
+Enterprise-IT-Service-Desk-Platform/
+├─ accounts/
+│  ├─ tests/test_system_management.py
+│  ├─ models.py
+│  ├─ serializers.py
+│  ├─ system_management.py
+│  └─ views.py
+├─ tickets/
+│  ├─ tests/
+│  ├─ models.py
+│  ├─ serializers.py
+│  ├─ services.py
+│  └─ views.py
+├─ assets/
+│  ├─ tests/
+│  ├─ models.py
+│  ├─ serializers.py
+│  └─ views.py
+├─ config/
+│  ├─ exceptions.py
+│  ├─ settings.py
+│  └─ urls.py
+├─ templates/
+│  ├─ base.html
+│  ├─ accounts/system_management.html
+│  └─ tickets/reports.html
+├─ static/
+│  ├─ css/app.css
+│  └─ js/layout.js
+├─ docs/
+│  ├─ architecture.md
+│  └─ FINAL_ACCEPTANCE_CHECKLIST.md
+├─ .github/workflows/ci.yml
+├─ compose.yaml
+├─ Dockerfile
+└─ manage.py
+```
+
+## 安全性說明
+
+- `.env`、Log、虛擬環境與測試快取均由 Git／Docker ignore 排除。
+- Secret Key、Debug 與 Allowed Hosts 支援環境變數設定。
+- 管理 API 同時要求 JWT 驗證與角色權限。
+- 密碼透過 Django Password Hasher 儲存。
+- localStorage JWT 適合作品 Demo；正式環境可再評估 HttpOnly Secure Cookie、Production WSGI server、HTTPS 與 CSP。
+
+## 專案範圍
+
+目前版本已進入 Feature Freeze。後續只處理文件、Demo、面試準備與錯誤修正，不納入 Celery、Redis、WebSocket、SLA Engine、CMDB 或大型通知系統。

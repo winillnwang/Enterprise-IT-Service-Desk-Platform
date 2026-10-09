@@ -6,19 +6,30 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   app:
     build: .
     ports:
       - "8000:8000"
     environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-127.0.0.1,localhost}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: db
       DB_PORT: "3306"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   mysql_data:

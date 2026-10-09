@@ -108,6 +108,7 @@ Docker Compose provides containers for:
 - MySQL database
 
 A persistent Docker volume is used for MySQL data.
+The application waits for the MySQL healthcheck before starting.
 
 ### Continuous Integration
 
@@ -119,9 +120,10 @@ The CI pipeline performs:
 - MySQL service startup
 - Dependency installation
 - Django system check
+- Missing migration check
 - Complete Pytest test suite
 
-The current automated test suite contains 40 tests covering ticket APIs, RBAC, ticket workflow rules, ticket history, dashboard permissions, and asset management behavior.
+The current automated test suite contains 52 tests covering authentication, ticket APIs, RBAC, ticket workflow rules, ticket history, dashboard and report permissions, asset management, and system management behavior.
 
 ### API Documentation
 

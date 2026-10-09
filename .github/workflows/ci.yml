@@ -28,6 +28,9 @@ jobs:
           --health-retries=10
 
     env:
+      DJANGO_SECRET_KEY: ci-only-secret-key
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost
       DB_NAME: enterprise_it_service_desk_db
       DB_USER: root
       DB_PASSWORD: root_password
@@ -58,6 +61,9 @@ jobs:
 
       - name: Run Django system check
         run: python manage.py check
+
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
 
       - name: Run tests
         run: pytest -v
