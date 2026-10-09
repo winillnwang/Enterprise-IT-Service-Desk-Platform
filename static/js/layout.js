@@ -94,6 +94,25 @@ function showRoleNavigation(user) {
   });
 }
 
+function applyActiveNavigation() {
+  const currentPath = window.location.pathname;
+
+  document.querySelectorAll(".nav-item").forEach((link) => {
+    const href = link.getAttribute("href");
+
+    if (!href) {
+      return;
+    }
+
+    if (
+      currentPath === href ||
+      (href !== "/dashboard/" && currentPath.startsWith(href))
+    ) {
+      link.classList.add("active");
+    }
+  });
+}
+
 async function loadLayoutUser() {
   const response = await layoutApiFetch("/api/auth/me/");
 
@@ -105,21 +124,13 @@ async function loadLayoutUser() {
 
   const user = await response.json();
 
-  const roleLabel = getRoleLabel(user.role);
+  document.getElementById("topbar-username").textContent = user.username;
 
-  const sidebarUser = document.getElementById("sidebar-user");
-
-  if (sidebarUser) {
-    sidebarUser.textContent = `${user.username}｜${roleLabel}`;
-  }
-
-  const topbarUser = document.getElementById("topbar-user");
-
-  if (topbarUser) {
-    topbarUser.textContent = `${user.username}｜${roleLabel}`;
-  }
+  document.getElementById("topbar-role").textContent = getRoleLabel(user.role);
 
   showRoleNavigation(user);
+
+  applyActiveNavigation();
 
   return user;
 }
@@ -132,7 +143,7 @@ function logout() {
   window.location.href = "/login/";
 }
 
-const logoutButton = document.getElementById("sidebar-logout");
+const logoutButton = document.getElementById("topbar-logout");
 
 if (logoutButton) {
   logoutButton.addEventListener("click", logout);
