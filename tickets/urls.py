@@ -6,6 +6,7 @@ from .views import (
     TicketHistoryListAPIView,
     TicketListCreateAPIView,
     DashboardSummaryAPIView,
+    ReportSummaryAPIView,
     dashboard_page,
 )
 
@@ -34,5 +35,10 @@ urlpatterns = [
         "dashboard/summary/",
         DashboardSummaryAPIView.as_view(),
         name="dashboard-summary",
+    ),
+    path(
+        "reports/summary/",
+        ReportSummaryAPIView.as_view(),
+        name="report-summary",
     ),
 ]

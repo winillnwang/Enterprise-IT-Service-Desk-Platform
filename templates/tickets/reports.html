@@ -1,0 +1,736 @@
+{% extends "base.html" %}
+
+{% block title %}
+統計報表｜企業 IT 維運暨工單管理平台
+{% endblock %}
+
+{% block page_heading %}
+統計報表
+{% endblock %}
+
+{% block content %}
+
+<div class="content-container">
+
+    <div class="page-section-header">
+
+        <div>
+            <h2 class="section-title">
+                工單統計報表
+            </h2>
+
+            <p class="section-description">
+                依日期與部門分析工單狀態、優先級與每月趨勢。
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="card report-filter-card">
+
+        <div class="report-filter-grid">
+
+            <div class="form-group">
+                <label for="start-date">
+                    起始日期
+                </label>
+
+                <input
+                    type="date"
+                    id="start-date"
+                    class="form-control"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="end-date">
+                    結束日期
+                </label>
+
+                <input
+                    type="date"
+                    id="end-date"
+                    class="form-control"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="department-filter">
+                    部門
+                </label>
+
+                <select
+                    id="department-filter"
+                    class="form-control"
+                >
+                    <option value="">
+                        全部部門
+                    </option>
+                </select>
+            </div>
+
+
+            <div class="filter-actions">
+
+                <button
+                    type="button"
+                    id="report-query-button"
+                    class="btn btn-primary"
+                >
+                    查詢
+                </button>
+
+                <button
+                    type="button"
+                    id="report-reset-button"
+                    class="btn btn-secondary"
+                >
+                    清除
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="report-summary-grid">
+
+        <div class="card report-summary-card">
+            <span class="report-summary-label">
+                工單總數
+            </span>
+
+            <strong
+                id="report-total-tickets"
+                class="report-summary-value"
+            >
+                -
+            </strong>
+        </div>
+
+
+        <div class="card report-summary-card">
+            <span class="report-summary-label">
+                待處理
+            </span>
+
+            <strong
+                id="report-open-tickets"
+                class="report-summary-value"
+            >
+                -
+            </strong>
+        </div>
+
+
+        <div class="card report-summary-card">
+            <span class="report-summary-label">
+                處理中
+            </span>
+
+            <strong
+                id="report-in-progress-tickets"
+                class="report-summary-value"
+            >
+                -
+            </strong>
+        </div>
+
+
+        <div class="card report-summary-card">
+            <span class="report-summary-label">
+                已解決 / 關閉
+            </span>
+
+            <strong
+                id="report-completed-tickets"
+                class="report-summary-value"
+            >
+                -
+            </strong>
+        </div>
+
+    </div>
+
+
+    <div class="report-chart-grid">
+
+        <div class="card report-chart-card">
+
+            <h3>
+                工單狀態分布
+            </h3>
+
+            <div class="chart-wrapper">
+                <canvas id="status-chart"></canvas>
+            </div>
+
+        </div>
+
+
+        <div class="card report-chart-card">
+
+            <h3>
+                優先級分布
+            </h3>
+
+            <div class="chart-wrapper">
+                <canvas id="priority-chart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card report-chart-card report-monthly-card">
+
+        <h3>
+            每月工單數量
+        </h3>
+
+        <div class="chart-wrapper chart-wrapper-wide">
+            <canvas id="monthly-chart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let statusChart = null;
+    let priorityChart = null;
+    let monthlyChart = null;
+
+
+    async function reportApiFetch(
+        url
+    ) {
+        let accessToken =
+            localStorage.getItem(
+                "access_token"
+            );
+
+        let response =
+            await fetch(
+                url,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+
+        if (response.status === 401) {
+            const refreshToken =
+                localStorage.getItem(
+                    "refresh_token"
+                );
+
+            if (!refreshToken) {
+                window.location.href =
+                    "/login/";
+
+                return null;
+            }
+
+
+            const refreshResponse =
+                await fetch(
+                    "/api/auth/refresh/",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            refresh: refreshToken
+                        })
+                    }
+                );
+
+
+            if (!refreshResponse.ok) {
+                localStorage.clear();
+
+                window.location.href =
+                    "/login/";
+
+                return null;
+            }
+
+
+            const refreshData =
+                await refreshResponse.json();
+
+            accessToken =
+                refreshData.access;
+
+            localStorage.setItem(
+                "access_token",
+                accessToken
+            );
+
+
+            response =
+                await fetch(
+                    url,
+                    {
+                        headers: {
+                            "Authorization":
+                                `Bearer ${accessToken}`
+                        }
+                    }
+                );
+        }
+
+
+        return response;
+    }
+
+
+    async function loadDepartments() {
+        const response =
+            await reportApiFetch(
+                "/api/departments/"
+            );
+
+        if (
+            !response
+            || !response.ok
+        ) {
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+        const departments =
+            Array.isArray(data)
+                ? data
+                : data.results || [];
+
+
+        const select =
+            document.getElementById(
+                "department-filter"
+            );
+
+
+        departments.forEach(
+            department => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    department.id;
+
+                option.textContent =
+                    department.name;
+
+                select.appendChild(
+                    option
+                );
+            }
+        );
+    }
+
+
+    function buildReportUrl() {
+        const startDate =
+            document.getElementById(
+                "start-date"
+            ).value;
+
+        const endDate =
+            document.getElementById(
+                "end-date"
+            ).value;
+
+        const department =
+            document.getElementById(
+                "department-filter"
+            ).value;
+
+
+        const params =
+            new URLSearchParams();
+
+
+        if (startDate) {
+            params.append(
+                "start_date",
+                startDate
+            );
+        }
+
+
+        if (endDate) {
+            params.append(
+                "end_date",
+                endDate
+            );
+        }
+
+
+        if (department) {
+            params.append(
+                "department",
+                department
+            );
+        }
+
+
+        const queryString =
+            params.toString();
+
+
+        return queryString
+            ? `/api/reports/summary/?${queryString}`
+            : "/api/reports/summary/";
+    }
+
+
+    function updateSummaryCards(
+        data
+    ) {
+        document.getElementById(
+            "report-total-tickets"
+        ).textContent =
+            data.total_tickets;
+
+
+        document.getElementById(
+            "report-open-tickets"
+        ).textContent =
+            data.status_distribution.open;
+
+
+        document.getElementById(
+            "report-in-progress-tickets"
+        ).textContent =
+            data.status_distribution.in_progress;
+
+
+        document.getElementById(
+            "report-completed-tickets"
+        ).textContent =
+            (
+                data.status_distribution.resolved
+                + data.status_distribution.closed
+            );
+    }
+
+
+    function renderStatusChart(
+        data
+    ) {
+        if (statusChart) {
+            statusChart.destroy();
+        }
+
+
+        statusChart =
+            new Chart(
+                document.getElementById(
+                    "status-chart"
+                ),
+                {
+                    type: "doughnut",
+
+                    data: {
+                        labels: [
+                            "待處理",
+                            "已指派",
+                            "處理中",
+                            "已解決",
+                            "已關閉"
+                        ],
+
+                        datasets: [
+                            {
+                                data: [
+                                    data.open,
+                                    data.assigned,
+                                    data.in_progress,
+                                    data.resolved,
+                                    data.closed
+                                ],
+
+                                backgroundColor: [
+                                    "#60a5fa",
+                                    "#8b5cf6",
+                                    "#f59e0b",
+                                    "#22c55e",
+                                    "#94a3b8"
+                                ],
+
+                                borderWidth: 0
+                            }
+                        ]
+                    },
+
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                }
+            );
+    }
+
+
+    function renderPriorityChart(
+        data
+    ) {
+        if (priorityChart) {
+            priorityChart.destroy();
+        }
+
+
+        priorityChart =
+            new Chart(
+                document.getElementById(
+                    "priority-chart"
+                ),
+                {
+                    type: "bar",
+
+                    data: {
+                        labels: [
+                            "低",
+                            "中",
+                            "高",
+                            "緊急"
+                        ],
+
+                        datasets: [
+                            {
+                                label: "工單數量",
+
+                                data: [
+                                    data.low,
+                                    data.medium,
+                                    data.high,
+                                    data.critical
+                                ],
+
+                                backgroundColor: [
+                                    "#22c55e",
+                                    "#eab308",
+                                    "#f97316",
+                                    "#ef4444"
+                                ],
+
+                                borderRadius: 6
+                            }
+                        ]
+                    },
+
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            );
+    }
+
+
+    function renderMonthlyChart(
+        data
+    ) {
+        if (monthlyChart) {
+            monthlyChart.destroy();
+        }
+
+
+        monthlyChart =
+            new Chart(
+                document.getElementById(
+                    "monthly-chart"
+                ),
+                {
+                    type: "line",
+
+                    data: {
+                        labels:
+                            data.map(
+                                item =>
+                                    item.month
+                            ),
+
+                        datasets: [
+                            {
+                                label: "工單數量",
+
+                                data:
+                                    data.map(
+                                        item =>
+                                            item.count
+                                    ),
+
+                                borderColor:
+                                    "#2563eb",
+
+                                backgroundColor:
+                                    "rgba(37, 99, 235, 0.12)",
+
+                                tension: 0.3,
+
+                                fill: true
+                            }
+                        ]
+                    },
+
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+    }
+
+
+    async function loadReport() {
+        const response =
+            await reportApiFetch(
+                buildReportUrl()
+            );
+
+
+        if (!response) {
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            alert(
+                data.message
+                || "無法載入統計報表"
+            );
+
+            return;
+        }
+
+
+        updateSummaryCards(
+            data
+        );
+
+
+        renderStatusChart(
+            data.status_distribution
+        );
+
+
+        renderPriorityChart(
+            data.priority_distribution
+        );
+
+
+        renderMonthlyChart(
+            data.monthly_ticket_count
+        );
+    }
+
+
+    document
+        .getElementById(
+            "report-query-button"
+        )
+        .addEventListener(
+            "click",
+            loadReport
+        );
+
+
+    document
+        .getElementById(
+            "report-reset-button"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                document.getElementById(
+                    "start-date"
+                ).value =
+                    "";
+
+                document.getElementById(
+                    "end-date"
+                ).value =
+                    "";
+
+                document.getElementById(
+                    "department-filter"
+                ).value =
+                    "";
+
+                loadReport();
+            }
+        );
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        async function () {
+
+            await loadDepartments();
+
+            await loadReport();
+        }
+    );
+
+</script>
+
+{% endblock %}

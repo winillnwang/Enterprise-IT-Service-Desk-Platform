@@ -1,383 +1,301 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>工單列表</title>
-    <style>
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: bold;
-        background-color: #eeeeee;
-    }
+{% extends "base.html" %}
 
-    .priority-low {
-        background-color: #e8f5e9;
-    }
+{% block title %}
+工單列表｜企業 IT 維運暨工單管理平台
+{% endblock %}
 
-    .priority-medium {
-        background-color: #fff3cd;
-    }
+{% block page_heading %}
+工單列表
+{% endblock %}
 
-    .priority-high {
-        background-color: #ffe0b2;
-    }
+{% block content %}
 
-    .priority-critical {
-        background-color: #ffcdd2;
-    }
+<div class="content-container">
 
-    .status-open {
-        background-color: #e3f2fd;
-    }
+    <div class="page-section-header">
+        <div>
+            <h2 class="section-title">工單列表</h2>
+            <p class="section-description">
+                查看、篩選與管理目前系統中的工單。
+            </p>
+        </div>
 
-    .status-assigned {
-        background-color: #ede7f6;
-    }
+        <div class="page-actions">
+            <a
+                href="/tickets/create/"
+                class="btn btn-primary"
+            >
+                新增工單
+            </a>
 
-    .status-in_progress {
-        background-color: #fff3e0;
-    }
-
-    .status-resolved {
-        background-color: #e8f5e9;
-    }
-
-    .status-closed {
-        background-color: #eeeeee;
-    }
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background-color: #f5f7fa;
-        color: #222;
-    }
-
-    .page-header {
-    background-color: #1f3b5b;
-    color: white;
-    padding: 18px 30px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    }
-
-    .page-header h1 {
-        margin: 0;
-        font-size: 24px;
-    }
-
-    .container {
-        width: 92%;
-        margin: 30px auto;
-    }
-
-    .toolbar {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .toolbar input,
-    .toolbar select {
-        padding: 8px 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-    }
-
-    .toolbar button,
-    .create-button {
-        padding: 8px 14px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .toolbar button {
-        background-color: #e5e7eb;
-        color: #222;
-    }
-
-    .create-button {
-        background-color: #1f3b5b;
-        color: white;
-    }
-
-    .ticket-table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: white;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .ticket-table th {
-        background-color: #eef2f6;
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .ticket-table td {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-    }
-
-    .ticket-table tr:hover {
-        background-color: #f9fbfd;
-    }
-
-    .detail-link {
-        color: #1f3b5b;
-        font-weight: bold;
-        text-decoration: none;
-    }
-
-    .detail-link:hover {
-        text-decoration: underline;
-    }
-
-    .user-area {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    }
-
-    #current-user {
-        font-size: 14px;
-    }
-
-    #logout-button {
-        padding: 7px 14px;
-        border: 1px solid white;
-        border-radius: 6px;
-        background-color: transparent;
-        color: white;
-        cursor: pointer;
-    }
-
-    #logout-button:hover {
-        background-color: white;
-        color: #1f3b5b;
-    }
-
-    .secondary-link {
-        display: inline-block;
-        margin-left: 10px;
-        padding: 8px 14px;
-        border-radius: 6px;
-        background-color: #e5e7eb;
-        color: #222;
-        text-decoration: none;
-    }
-
-    .secondary-link:hover {
-        background-color: #d1d5db;
-    }
-    </style>
-</head>
-<body>
-    <div class="page-header">
-    <div>
-        <h1>企業 IT 維運暨工單管理平台</h1>
+            <a
+                id="asset-link"
+                href="/assets/"
+                class="btn btn-secondary"
+            >
+                資產管理
+            </a>
+        </div>
     </div>
 
-    <div class="user-area">
-        <span id="current-user">
-            使用者載入中...
-        </span>
 
-        <button id="logout-button">
-            登出
-        </button>
+    <div class="card filter-card">
+
+        <div class="filter-grid">
+
+            <div class="form-group">
+                <label for="search">
+                    搜尋
+                </label>
+
+                <input
+                    type="text"
+                    id="search"
+                    class="form-control"
+                    placeholder="搜尋工單標題"
+                >
+            </div>
+
+
+            <div class="form-group">
+                <label for="status-filter">
+                    狀態
+                </label>
+
+                <select
+                    id="status-filter"
+                    class="form-control"
+                >
+                    <option value="">
+                        全部狀態
+                    </option>
+
+                    <option value="open">
+                        待處理
+                    </option>
+
+                    <option value="assigned">
+                        已指派
+                    </option>
+
+                    <option value="in_progress">
+                        處理中
+                    </option>
+
+                    <option value="resolved">
+                        已解決
+                    </option>
+
+                    <option value="closed">
+                        已關閉
+                    </option>
+                </select>
+            </div>
+
+
+            <div class="form-group">
+                <label for="priority-filter">
+                    優先級
+                </label>
+
+                <select
+                    id="priority-filter"
+                    class="form-control"
+                >
+                    <option value="">
+                        全部優先級
+                    </option>
+
+                    <option value="low">
+                        低
+                    </option>
+
+                    <option value="medium">
+                        中
+                    </option>
+
+                    <option value="high">
+                        高
+                    </option>
+
+                    <option value="critical">
+                        緊急
+                    </option>
+                </select>
+            </div>
+
+
+            <div class="filter-actions">
+
+                <button
+                    type="button"
+                    id="filter-button"
+                    class="btn btn-primary"
+                >
+                    篩選
+                </button>
+
+                <button
+                    type="button"
+                    id="reset-button"
+                    class="btn btn-secondary"
+                >
+                    清除
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
+
+
+    <div class="card table-card">
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
+
+                <thead>
+                    <tr>
+                        <th>工單編號</th>
+                        <th>標題</th>
+                        <th>分類</th>
+                        <th>優先級</th>
+                        <th>狀態</th>
+                        <th>回報人</th>
+                        <th>處理人</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+
+                <tbody id="ticket-table-body">
+                </tbody>
+
+            </table>
+
+        </div>
+
     </div>
 
-    <div class="container">
-    <h2>工單列表</h2>
+</div>
 
-    <p>
-    <a
-    href="/tickets/create/"
-    class="create-button"
-    >
-    新增工單
-    </a>
+{% endblock %}
 
-    <a
-        id="asset-link"
-        href="/assets/"
-        class="secondary-link"
-    >
-        我的資產
-    </a>
-    </p>
 
-    <div class="toolbar">
-        <input
-            type="text"
-            id="search"
-            placeholder="搜尋工單標題"
-        >
+{% block extra_js %}
 
-        <select id="status-filter">
-            <option value="">全部狀態</option>
-            <option value="open">Open</option>
-            <option value="assigned">Assigned</option>
-            <option value="in_progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
-        </select>
+<script>
+    const accessToken =
+        localStorage.getItem(
+            "access_token"
+        );
 
-        <select id="priority-filter">
-            <option value="">全部優先級</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="critical">Critical</option>
-        </select>
 
-        <button id="filter-button">
-            篩選
-        </button>
+    function getPriorityLabel(priority) {
+        const labels = {
+            low: "低",
+            medium: "中",
+            high: "高",
+            critical: "緊急"
+        };
 
-        <button id="reset-button">
-            清除
-        </button>
-    </div>
+        return labels[priority] || priority;
+    }
 
-    <table border="1" cellspacing="0" cellpadding="8">
-        <thead>
-            <tr>
-                <th>工單編號</th>
-                <th>標題</th>
-                <th>分類</th>
-                <th>優先級</th>
-                <th>狀態</th>
-                <th>回報人</th>
-                <th>處理人</th>
-                <th>操作</th>
-            </tr>
-        </thead>
 
-        <tbody id="ticket-table-body">
-        </tbody>
-    </table>
-    </div>
-    <script>
-        const accessToken = localStorage.getItem("access_token");
+    function getStatusLabel(status) {
+        const labels = {
+            open: "待處理",
+            assigned: "已指派",
+            in_progress: "處理中",
+            resolved: "已解決",
+            closed: "已關閉"
+        };
 
-        function getPriorityLabel(priority) {
-            const labels = {
-                low: "低",
-                medium: "中",
-                high: "高",
-                critical: "緊急"
-            };
+        return labels[status] || status;
+    }
 
-            return labels[priority] || priority;
-}
 
-        function getStatusLabel(status) {
-            const labels = {
-                open: "待處理",
-                assigned: "已指派",
-                in_progress: "處理中",
-                resolved: "已解決",
-                closed: "已關閉"
-            };
-
-            return labels[status] || status;
-        }
-
-        function getRoleLabel(role) {
-            const labels = {
-                employee: "一般員工",
-                it_engineer: "IT 工程師",
-                it_manager: "IT 管理者",
-                admin: "系統管理員"
-            };
-
-            return labels[role] || role;
-        }
-
-        async function loadCurrentUser() {
-            let accessToken =
-                localStorage.getItem("access_token");
-
-            let response = await fetch(
-                "/api/auth/me/",
-                {
-                    headers: {
-                        "Authorization":
-                            `Bearer ${accessToken}`
-                    }
+    async function loadCurrentUserForTicketPage() {
+        const response = await fetch(
+            "/api/auth/me/",
+            {
+                headers: {
+                    "Authorization":
+                        `Bearer ${accessToken}`
                 }
+            }
+        );
+
+        if (!response.ok) {
+            window.location.href =
+                "/login/";
+
+            return;
+        }
+
+        const user =
+            await response.json();
+
+        const assetLink =
+            document.getElementById(
+                "asset-link"
             );
 
-            if (!response.ok) {
-                window.location.href = "/login/";
-                return;
-            }
-
-            const user = await response.json();
-
-            document.getElementById(
-                "current-user"
-            ).textContent =
-                `${user.username}｜${getRoleLabel(user.role)}`;
-
-            const assetLink =
-                document.getElementById(
-                    "asset-link"
-                );
-
-            if (user.role === "employee") {
-                assetLink.textContent =
-                    "我的資產";
-            } else if (
-                [
-                    "it_engineer",
-                    "it_manager",
-                    "admin"
-                ].includes(user.role)
-            ) {
-                assetLink.textContent =
-                    "資產管理";
-            }
+        if (user.role === "employee") {
+            assetLink.textContent =
+                "我的資產";
+        } else {
+            assetLink.textContent =
+                "資產管理";
         }
+    }
 
-        async function loadTickets() {
-            const search =
-            document.getElementById("search").value;
+
+    async function loadTickets() {
+        const search =
+            document.getElementById(
+                "search"
+            ).value;
 
         const status =
-            document.getElementById("status-filter").value;
+            document.getElementById(
+                "status-filter"
+            ).value;
 
         const priority =
-            document.getElementById("priority-filter").value;
+            document.getElementById(
+                "priority-filter"
+            ).value;
 
         const params =
             new URLSearchParams();
 
+
         if (search) {
-            params.append("search", search);
+            params.append(
+                "search",
+                search
+            );
         }
+
 
         if (status) {
-            params.append("status", status);
+            params.append(
+                "status",
+                status
+            );
         }
 
+
         if (priority) {
-            params.append("priority", priority);
+            params.append(
+                "priority",
+                priority
+            );
         }
+
 
         const queryString =
             params.toString();
@@ -386,112 +304,188 @@
             queryString
                 ? `/api/tickets/?${queryString}`
                 : "/api/tickets/";
-            const response = await fetch(url, {
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${accessToken}`
+                    }
                 }
-            });
+            );
 
-            const data = await response.json();
 
-            const tableBody =
-                document.getElementById("ticket-table-body");
+        const tableBody =
+            document.getElementById(
+                "ticket-table-body"
+            );
 
-            if (!response.ok) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8">無法載入工單資料</td>
-                    </tr>
-                `;
-                return;
-            }
 
-            tableBody.innerHTML = "";
-
-            data.forEach(ticket => {
-                const row = document.createElement("tr");
-
-                const assignee = ticket.assignee
-                    ? ticket.assignee.username
-                    : "尚未指派";
-
-                row.innerHTML = `
-                    <td>${ticket.ticket_no}</td>
-                    <td>${ticket.title}</td>
-                    <td>${ticket.category.name}</td>
-                    <td>
-                        <span class="badge priority-${ticket.priority}">
-                            ${getPriorityLabel(ticket.priority)}
-                        </span>
+        if (!response.ok) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td
+                        colspan="8"
+                        class="empty-state"
+                    >
+                        無法載入工單資料
                     </td>
+                </tr>
+            `;
 
-                    <td>
-                        <span class="badge status-${ticket.status}">
-                            ${getStatusLabel(ticket.status)}
-                        </span>
-                    </td>
-                    <td>${ticket.reporter.username}</td>
-                    <td>${assignee}</td>
-                    <td>
-                        <a href="/tickets/${ticket.id}/"class="detail-link">
-                          查看詳細</a>
-                    </td>
-                `;
-
-                tableBody.appendChild(row);
-            });
+            return;
         }
 
-        document
-    .getElementById("filter-button")
-    .addEventListener(
-        "click",
-        loadTickets
-    );
+
+        const data =
+            await response.json();
+
+        tableBody.innerHTML =
+            "";
+
+
+        if (data.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td
+                        colspan="8"
+                        class="empty-state"
+                    >
+                        沒有符合條件的工單
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        data.forEach(
+            ticket => {
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+                const assignee =
+                    ticket.assignee
+                        ? ticket.assignee.username
+                        : "尚未指派";
+
+
+                row.innerHTML = `
+                    <td class="ticket-number">
+                        ${ticket.ticket_no}
+                    </td>
+
+                    <td>
+                        ${ticket.title}
+                    </td>
+
+                    <td>
+                        ${ticket.category.name}
+                    </td>
+
+                    <td>
+                        <span
+                            class="
+                                badge
+                                priority-${ticket.priority}
+                            "
+                        >
+                            ${getPriorityLabel(
+                                ticket.priority
+                            )}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span
+                            class="
+                                badge
+                                status-${ticket.status}
+                            "
+                        >
+                            ${getStatusLabel(
+                                ticket.status
+                            )}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${ticket.reporter.username}
+                    </td>
+
+                    <td>
+                        ${assignee}
+                    </td>
+
+                    <td>
+                        <a
+                            href="/tickets/${ticket.id}/"
+                            class="table-link"
+                        >
+                            查看詳細
+                        </a>
+                    </td>
+                `;
+
+                tableBody.appendChild(
+                    row
+                );
+            }
+        );
+    }
 
 
     document
-        .getElementById("reset-button")
+        .getElementById(
+            "filter-button"
+        )
+        .addEventListener(
+            "click",
+            loadTickets
+        );
+
+
+    document
+        .getElementById(
+            "reset-button"
+        )
         .addEventListener(
             "click",
             function () {
                 document.getElementById(
                     "search"
-                ).value = "";
+                ).value =
+                    "";
 
                 document.getElementById(
                     "status-filter"
-                ).value = "";
+                ).value =
+                    "";
 
                 document.getElementById(
                     "priority-filter"
-                ).value = "";
+                ).value =
+                    "";
 
                 loadTickets();
             }
         );
 
-        document
-        .getElementById("logout-button")
-        .addEventListener(
-            "click",
-            function () {
-                localStorage.removeItem(
-                    "access_token"
-                );
 
-                localStorage.removeItem(
-                    "refresh_token"
-                );
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+            loadCurrentUserForTicketPage();
+            loadTickets();
+        }
+    );
 
-                window.location.href =
-                    "/login/";
-            }
-        );
+</script>
 
-        loadCurrentUser();
-        loadTickets();
-
-    </script>
-</body>
-</html>
+{% endblock %}

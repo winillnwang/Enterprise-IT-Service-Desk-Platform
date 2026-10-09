@@ -588,3 +588,79 @@ def test_it_engineer_can_access_dashboard_summary():
     response = client.get("/api/dashboard/summary/")
 
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_employee_cannot_access_report_summary():
+    employee = User.objects.create_user(
+        username="employee_report_denied",
+        password="test1234",
+        role=User.Role.EMPLOYEE,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=employee)
+
+    response = client.get("/api/reports/summary/")
+
+    assert response.status_code == 403
+    assert response.data["success"] is False
+
+
+@pytest.mark.django_db
+def test_it_engineer_can_access_report_summary():
+    engineer = User.objects.create_user(
+        username="engineer_report_allowed",
+        password="test1234",
+        role=User.Role.IT_ENGINEER,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=engineer)
+
+    response = client.get("/api/reports/summary/")
+
+    assert response.status_code == 200
+
+    assert "total_tickets" in response.data
+    assert "status_distribution" in response.data
+    assert "priority_distribution" in response.data
+    assert "monthly_ticket_count" in response.data
+
+
+@pytest.mark.django_db
+def test_it_manager_can_access_report_summary():
+    manager = User.objects.create_user(
+        username="manager_report_allowed",
+        password="test1234",
+        role=User.Role.IT_MANAGER,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=manager)
+
+    response = client.get("/api/reports/summary/")
+
+    assert response.status_code == 200
+
+    assert response.data["total_tickets"] == 0
+    assert response.data["monthly_ticket_count"] == []
+
+
+@pytest.mark.django_db
+def test_report_summary_rejects_invalid_start_date():
+    manager = User.objects.create_user(
+        username="manager_report_invalid_date",
+        password="test1234",
+        role=User.Role.IT_MANAGER,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=manager)
+
+    response = client.get("/api/reports/summary/" "?start_date=invalid-date")
+
+    assert response.status_code == 400
+    assert response.data["success"] is False
+
+    assert response.data["message"] == "Invalid start_date format. Use YYYY-MM-DD."

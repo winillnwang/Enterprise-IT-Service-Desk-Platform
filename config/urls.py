@@ -36,6 +36,7 @@ from tickets.views import (
     ticket_detail_page,
     ticket_list_page,
     dashboard_page,
+    reports_page,
 )
 
 from assets.views import (
@@ -98,6 +99,11 @@ urlpatterns = [
         "dashboard/",
         dashboard_page,
         name="dashboard-page",
+    ),
+    path(
+        "reports/",
+        reports_page,
+        name="reports-page",
     ),
     path(
         "api/",

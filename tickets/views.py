@@ -24,7 +24,8 @@ from .serializers import (
 
 from .permissions import IsTicketOwnerOrITStaff
 
-
+from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.shortcuts import render
 
 
@@ -190,8 +191,148 @@ class DashboardSummaryAPIView(APIView):
         return Response(data)
 
 
+class ReportSummaryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role not in [
+            "it_engineer",
+            "it_manager",
+            "admin",
+        ]:
+            return Response(
+                {
+                    "success": False,
+                    "message": ("You do not have permission " "to access reports."),
+                },
+                status=403,
+            )
+
+        queryset = Ticket.objects.all()
+
+        start_date_value = request.query_params.get("start_date")
+
+        end_date_value = request.query_params.get("end_date")
+
+        department_id = request.query_params.get("department")
+
+        if start_date_value:
+            start_date = parse_date(start_date_value)
+
+            if not start_date:
+                return Response(
+                    {
+                        "success": False,
+                        "message": ("Invalid start_date format. " "Use YYYY-MM-DD."),
+                    },
+                    status=400,
+                )
+
+            queryset = queryset.filter(created_at__date__gte=start_date)
+
+        if end_date_value:
+            end_date = parse_date(end_date_value)
+
+            if not end_date:
+                return Response(
+                    {
+                        "success": False,
+                        "message": ("Invalid end_date format. " "Use YYYY-MM-DD."),
+                    },
+                    status=400,
+                )
+
+            queryset = queryset.filter(created_at__date__lte=end_date)
+
+        if start_date_value and end_date_value and start_date > end_date:
+            return Response(
+                {
+                    "success": False,
+                    "message": ("start_date cannot be later " "than end_date."),
+                },
+                status=400,
+            )
+
+        if department_id:
+            try:
+                department_id = int(department_id)
+            except ValueError:
+                return Response(
+                    {
+                        "success": False,
+                        "message": ("department must be " "an integer."),
+                    },
+                    status=400,
+                )
+
+            queryset = queryset.filter(reporter__department_id=(department_id))
+
+        status_distribution = {
+            "open": queryset.filter(status=Ticket.Status.OPEN).count(),
+            "assigned": queryset.filter(status=Ticket.Status.ASSIGNED).count(),
+            "in_progress": queryset.filter(status=Ticket.Status.IN_PROGRESS).count(),
+            "resolved": queryset.filter(status=Ticket.Status.RESOLVED).count(),
+            "closed": queryset.filter(status=Ticket.Status.CLOSED).count(),
+        }
+
+        priority_distribution = {
+            "low": queryset.filter(priority=Ticket.Priority.LOW).count(),
+            "medium": queryset.filter(priority=Ticket.Priority.MEDIUM).count(),
+            "high": queryset.filter(priority=Ticket.Priority.HIGH).count(),
+            "critical": queryset.filter(priority=Ticket.Priority.CRITICAL).count(),
+        }
+
+        monthly_counts = {}
+
+        for created_at in queryset.values_list(
+            "created_at",
+            flat=True,
+        ):
+            local_created_at = timezone.localtime(
+                created_at
+            )
+
+            month_key = local_created_at.strftime(
+                "%Y-%m"
+            )
+
+            monthly_counts[month_key] = (
+                monthly_counts.get(
+                    month_key,
+                    0,
+                )
+                + 1
+            )
+
+        monthly_ticket_count = [
+            {
+                "month": month,
+                "count": count,
+            }
+            for month, count in sorted(
+                monthly_counts.items()
+            )
+        ]
+
+        return Response(
+            {
+                "total_tickets": (queryset.count()),
+                "status_distribution": (status_distribution),
+                "priority_distribution": (priority_distribution),
+                "monthly_ticket_count": (monthly_ticket_count),
+            }
+        )
+
+
 def dashboard_page(request):
     return render(
         request,
         "tickets/dashboard.html",
+    )
+
+
+def reports_page(request):
+    return render(
+        request,
+        "tickets/reports.html",
     )
